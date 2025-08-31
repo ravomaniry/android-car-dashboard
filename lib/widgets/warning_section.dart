@@ -73,48 +73,6 @@ class WarningSection extends StatelessWidget {
                   'VOLTAGE OK',
                   'LOW VOLTAGE',
                 ),
-                const SizedBox(height: 12),
-                _buildWarningItem(
-                  'ENGINE',
-                  false,
-                  Icons.settings,
-                  'RUNNING OK',
-                  'CHECK ENGINE',
-                ),
-              ],
-            ),
-          ),
-
-          // Terminal-style prompt
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F0F0F),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Row(
-              children: [
-                Text(
-                  'root@car:~\$ ',
-                  style: GoogleFonts.firaCode(
-                    color: const Color(0xFF00FF41),
-                    fontSize: 10,
-                  ),
-                ),
-                AnimatedBuilder(
-                  animation: blinkAnimation,
-                  builder: (context, child) {
-                    return Container(
-                      width: 8,
-                      height: 12,
-                      color: Color.lerp(
-                        Colors.transparent,
-                        const Color(0xFF00FF41),
-                        blinkAnimation.value,
-                      ),
-                    );
-                  },
-                ),
               ],
             ),
           ),

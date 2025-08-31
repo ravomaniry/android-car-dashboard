@@ -162,48 +162,50 @@ class CoolantGaugePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 10;
+    final radius = size.width / 2 - 15;
+    final numTicks = 20; // More ticks for htop-style
 
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 8
+      ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
 
-    // Background arc
+    // Draw background circle
     paint.color = const Color(0xFF333333);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -math.pi * 0.75, // Start angle
-      math.pi * 1.5, // Sweep angle (270 degrees)
-      false,
-      paint,
-    );
+    paint.strokeWidth = 2;
+    canvas.drawCircle(center, radius, paint);
 
-    // Temperature arc
+    // Calculate current temperature position
     final normalizedTemp =
         ((temperature - CoolantGauge.minTemp) / (CoolantGauge.maxTemp - CoolantGauge.minTemp)).clamp(0.0, 1.0);
-    final tempAngle = normalizedTemp * math.pi * 1.5;
+    final currentTickIndex = (normalizedTemp * numTicks).round();
 
-    paint.color = _getArcColor(temperature);
-    paint.strokeWidth = 10;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -math.pi * 0.75,
-      tempAngle,
-      false,
-      paint,
-    );
+    // Get uniform color for all ticks based on current temperature criticality
+    final currentTempColor = _getTickColor(temperature);
 
-    // Tick marks
-    paint.strokeWidth = 2;
-    paint.color = const Color(0xFF00FF41);
+    // Draw htop-style ticks
+    for (int i = 0; i <= numTicks; i++) {
+      final angle = -math.pi * 0.75 + (i / numTicks) * math.pi * 1.5;
 
-    for (int i = 0; i <= 6; i++) {
-      final angle = -math.pi * 0.75 + (i / 6) * math.pi * 1.5;
+      // Determine tick color and style based on whether it's active
+      Color tickColor;
+      if (i <= currentTickIndex) {
+        // Active ticks - all use the current temperature's criticality color
+        tickColor = currentTempColor;
+      } else {
+        // Inactive ticks - dark gray
+        tickColor = const Color(0xFF444444);
+      }
+
+      paint.color = tickColor;
+      paint.strokeWidth = i <= currentTickIndex ? 4 : 2;
+
+      // Calculate tick positions pointing toward center
+      final tickLength = i <= currentTickIndex ? 12 : 8;
       final tickStart = center +
           Offset(
-            math.cos(angle) * (radius - 8),
-            math.sin(angle) * (radius - 8),
+            math.cos(angle) * (radius - tickLength),
+            math.sin(angle) * (radius - tickLength),
           );
       final tickEnd = center +
           Offset(
@@ -214,26 +216,15 @@ class CoolantGaugePainter extends CustomPainter {
       canvas.drawLine(tickStart, tickEnd, paint);
     }
 
-    // Optimal temperature indicator
-    final optimalAngle = -math.pi * 0.75 +
-        ((CoolantGauge.optimalTemp - CoolantGauge.minTemp) / (CoolantGauge.maxTemp - CoolantGauge.minTemp)) *
-            math.pi *
-            1.5;
+    // Removed gray tick marks for cleaner appearance
+  }
 
-    paint.color = const Color(0xFF00FF41);
-    paint.strokeWidth = 3;
-    final optimalStart = center +
-        Offset(
-          math.cos(optimalAngle) * (radius - 15),
-          math.sin(optimalAngle) * (radius - 15),
-        );
-    final optimalEnd = center +
-        Offset(
-          math.cos(optimalAngle) * (radius + 5),
-          math.sin(optimalAngle) * (radius + 5),
-        );
-
-    canvas.drawLine(optimalStart, optimalEnd, paint);
+  Color _getTickColor(double temp) {
+    if (temp < 70) return const Color(0xFF00D9FF); // Cyan for cold
+    if (temp <= 85) return const Color(0xFF00FF41); // Green for normal
+    if (temp <= 95) return const Color(0xFFFFEB3B); // Yellow for warm
+    if (temp <= 105) return const Color(0xFFFF9800); // Orange for hot
+    return const Color(0xFFFF5722); // Red for overheating
   }
 
   Color _getArcColor(double temp) {

@@ -163,48 +163,6 @@ class InfoSection extends StatelessWidget {
               ],
             ),
           ),
-
-          // Status indicator
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F0F0F),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color: const Color(0xFF333333),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'ALL SYSTEMS',
-                  style: GoogleFonts.firaCode(
-                    color: const Color(0xFF00FF41),
-                    fontSize: 10,
-                  ),
-                ),
-                AnimatedBuilder(
-                  animation: blinkAnimation,
-                  builder: (context, child) {
-                    return Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: Color.lerp(
-                          const Color(0xFF00FF41).withOpacity(0.3),
-                          const Color(0xFF00FF41),
-                          blinkAnimation.value,
-                        ),
-                        shape: BoxShape.circle,
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );

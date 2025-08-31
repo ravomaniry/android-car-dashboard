@@ -208,47 +208,49 @@ class FuelGaugePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 10;
+    final radius = size.width / 2 - 15;
+    final numTicks = 20; // More ticks for htop-style
 
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 8
+      ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
 
-    // Background arc
+    // Draw background circle
     paint.color = const Color(0xFF333333);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -math.pi * 0.75, // Start angle
-      math.pi * 1.5, // Sweep angle (270 degrees)
-      false,
-      paint,
-    );
-
-    // Fuel level arc
-    final normalizedFuel = (fuelLevel / FuelGauge.maxFuel).clamp(0.0, 1.0);
-    final fuelAngle = normalizedFuel * math.pi * 1.5;
-
-    paint.color = _getArcColor(fuelLevel);
-    paint.strokeWidth = 10;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -math.pi * 0.75,
-      fuelAngle,
-      false,
-      paint,
-    );
-
-    // Tick marks
     paint.strokeWidth = 2;
-    paint.color = const Color(0xFF00FF41);
+    canvas.drawCircle(center, radius, paint);
 
-    for (int i = 0; i <= 4; i++) {
-      final angle = -math.pi * 0.75 + (i / 4) * math.pi * 1.5;
+    // Calculate current fuel level position
+    final normalizedFuel = (fuelLevel / FuelGauge.maxFuel).clamp(0.0, 1.0);
+    final currentTickIndex = (normalizedFuel * numTicks).round();
+
+    // Get uniform color for all ticks based on current fuel level criticality
+    final currentFuelColor = _getTickColor(fuelLevel);
+
+    // Draw htop-style ticks
+    for (int i = 0; i <= numTicks; i++) {
+      final angle = -math.pi * 0.75 + (i / numTicks) * math.pi * 1.5;
+
+      // Determine tick color and style based on whether it's active
+      Color tickColor;
+      if (i <= currentTickIndex) {
+        // Active ticks - all use the current fuel level's criticality color
+        tickColor = currentFuelColor;
+      } else {
+        // Inactive ticks - dark gray
+        tickColor = const Color(0xFF444444);
+      }
+
+      paint.color = tickColor;
+      paint.strokeWidth = i <= currentTickIndex ? 4 : 2;
+
+      // Calculate tick positions pointing toward center
+      final tickLength = i <= currentTickIndex ? 12 : 8;
       final tickStart = center +
           Offset(
-            math.cos(angle) * (radius - 8),
-            math.sin(angle) * (radius - 8),
+            math.cos(angle) * (radius - tickLength),
+            math.sin(angle) * (radius - tickLength),
           );
       final tickEnd = center +
           Offset(
@@ -259,23 +261,34 @@ class FuelGaugePainter extends CustomPainter {
       canvas.drawLine(tickStart, tickEnd, paint);
     }
 
-    // Low fuel warning indicator
-    final lowFuelAngle = -math.pi * 0.75 + (FuelGauge.lowFuelThreshold / FuelGauge.maxFuel) * math.pi * 1.5;
+    // Removed gray tick marks for cleaner appearance
 
-    paint.color = Colors.red;
-    paint.strokeWidth = 3;
-    final warningStart = center +
-        Offset(
-          math.cos(lowFuelAngle) * (radius - 15),
-          math.sin(lowFuelAngle) * (radius - 15),
-        );
-    final warningEnd = center +
-        Offset(
-          math.cos(lowFuelAngle) * (radius + 5),
-          math.sin(lowFuelAngle) * (radius + 5),
-        );
+    // Low fuel warning indicator (special thick mark)
+    if (fuelLevel <= FuelGauge.lowFuelThreshold) {
+      final lowFuelAngle = -math.pi * 0.75 + (FuelGauge.lowFuelThreshold / FuelGauge.maxFuel) * math.pi * 1.5;
 
-    canvas.drawLine(warningStart, warningEnd, paint);
+      paint.color = Colors.red;
+      paint.strokeWidth = 5;
+      final warningStart = center +
+          Offset(
+            math.cos(lowFuelAngle) * (radius - 20),
+            math.sin(lowFuelAngle) * (radius - 20),
+          );
+      final warningEnd = center +
+          Offset(
+            math.cos(lowFuelAngle) * (radius + 5),
+            math.sin(lowFuelAngle) * (radius + 5),
+          );
+
+      canvas.drawLine(warningStart, warningEnd, paint);
+    }
+  }
+
+  Color _getTickColor(double level) {
+    if (level <= FuelGauge.lowFuelThreshold) return const Color(0xFFFF5722); // Red for critical
+    if (level <= 25) return const Color(0xFFFF9800); // Orange for low
+    if (level <= 50) return const Color(0xFFFFEB3B); // Yellow for medium
+    return const Color(0xFF00FF41); // Green for good
   }
 
   Color _getArcColor(double level) {
