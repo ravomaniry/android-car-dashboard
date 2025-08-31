@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../services/bluetooth_service.dart';
 import '../services/gps_service.dart';
+import '../services/dashboard_state.dart';
 
 class WarningSection extends StatelessWidget {
   final bool oilWarning;
@@ -18,45 +19,77 @@ class WarningSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSmallScreen = MediaQuery.of(context).size.width < 850;
+    return Consumer<DashboardState>(
+      builder: (context, dashboardState, child) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final isSmallScreen = dashboardState!.isSmallScreen;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        border: Border.all(color: const Color(0xFF00FF41), width: 1),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(color: const Color(0xFF00FF41).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          if (!isSmallScreen) ...[
-            Row(
-              children: [
-                Icon(Icons.terminal, color: const Color(0xFF00FF41), size: 16),
-                const SizedBox(width: 8),
-                Text(
-                  'SYSTEM STATUS',
-                  style: GoogleFonts.firaCode(
-                    color: const Color(0xFF00FF41),
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
+            // Check if this section needs small screen mode
+            final needsSmallScreen = _checkIfNeedsSmallScreen(constraints);
 
-          // Warning indicators
-          Expanded(child: isSmallScreen ? _buildSmallScreenLayout() : _buildNormalLayout()),
-        ],
-      ),
+            // Notify state manager
+            if (needsSmallScreen && !isSmallScreen) {
+              // Use post-frame callback to avoid build-time state changes
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                dashboardState.requestSmallScreenMode('WarningSection');
+              });
+            } else if (!needsSmallScreen && isSmallScreen) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                dashboardState.requestBigScreenMode('WarningSection');
+              });
+            }
+
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1A1A),
+                border: Border.all(color: const Color(0xFF00FF41), width: 1),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(color: const Color(0xFF00FF41).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2)),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  if (!isSmallScreen) ...[
+                    Row(
+                      children: [
+                        Icon(Icons.terminal, color: const Color(0xFF00FF41), size: 16),
+                        const SizedBox(width: 8),
+                        Text(
+                          'SYSTEM STATUS',
+                          style: GoogleFonts.firaCode(
+                            color: const Color(0xFF00FF41),
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Warning indicators
+                  Expanded(child: isSmallScreen ? _buildSmallScreenLayout() : _buildNormalLayout()),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
+  }
+
+  // Check if this section needs small screen mode based on available space
+  bool _checkIfNeedsSmallScreen(BoxConstraints constraints) {
+    final availableWidth = constraints.maxWidth;
+    final availableHeight = constraints.maxHeight;
+
+    // Use the same threshold as other sections (850px width)
+    return availableWidth < 850 || availableHeight < 400;
   }
 
   Widget _buildSmallScreenLayout() {

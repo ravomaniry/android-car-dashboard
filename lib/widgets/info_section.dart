@@ -27,26 +27,80 @@ class InfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Try to render with normal layout first
-        final normalLayout = _buildNormalLayout(constraints);
+    return Consumer<DashboardState>(
+      builder: (context, dashboardState, child) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final isSmallScreen = dashboardState.isSmallScreen;
 
-        // Check if normal layout overflows
-        final isOverflowing = _checkOverflow(normalLayout, constraints);
-        final isSmallScreen = isOverflowing;
+            // Check if this section needs small screen mode
+            final needsSmallScreen = _checkIfNeedsSmallScreen(constraints);
 
-        // Log layout decision
-        print('InfoSection - Available space: ${constraints.maxWidth} x ${constraints.maxHeight}');
-        print('InfoSection - Overflow detected: $isOverflowing, using small screen: $isSmallScreen');
+            // Notify state manager
+            if (needsSmallScreen && !isSmallScreen) {
+              // Use post-frame callback to avoid build-time state changes
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                dashboardState.requestSmallScreenMode('InfoSection');
+              });
+            } else if (!needsSmallScreen && isSmallScreen) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                dashboardState.requestBigScreenMode('InfoSection');
+              });
+            }
 
-        // Return appropriate layout
-        return isSmallScreen ? _buildSmallScreenLayout(constraints) : normalLayout;
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1A1A),
+                border: Border.all(color: const Color(0xFF00FF41), width: 1),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(color: const Color(0xFF00FF41).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2)),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  if (!isSmallScreen) ...[
+                    Row(
+                      children: [
+                        Icon(Icons.info_outline, color: const Color(0xFF00FF41), size: 16),
+                        const SizedBox(width: 8),
+                        Text(
+                          'VEHICLE STATUS',
+                          style: GoogleFonts.firaCode(
+                            color: const Color(0xFF00FF41),
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Content
+                  Expanded(child: isSmallScreen ? _buildSmallScreenLayout() : _buildNormalLayout()),
+                ],
+              ),
+            );
+          },
+        );
       },
     );
   }
 
-  Widget _buildNormalLayout(BoxConstraints constraints) {
+  // Check if this section needs small screen mode based on available space
+  bool _checkIfNeedsSmallScreen(BoxConstraints constraints) {
+    final availableWidth = constraints.maxWidth;
+    final availableHeight = constraints.maxHeight;
+
+    // Use the same threshold as other sections (850px width)
+    return availableWidth < 850 || availableHeight < 400;
+  }
+
+  Widget _buildNormalLayout() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -159,7 +213,7 @@ class InfoSection extends StatelessWidget {
     );
   }
 
-  Widget _buildSmallScreenLayout(BoxConstraints constraints) {
+  Widget _buildSmallScreenLayout() {
     return Container(
       padding: const EdgeInsets.all(8), // Reduced padding for small screen
       decoration: BoxDecoration(
@@ -173,10 +227,6 @@ class InfoSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Compact header - just icon
-          Center(child: Icon(Icons.info_outline, color: const Color(0xFF00FF41), size: 20)),
-          const SizedBox(height: 8),
-
           // Compact lighting section - no titles, just indicators
           Expanded(
             child: Column(
@@ -222,18 +272,6 @@ class InfoSection extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  // Helper method to check if content overflows
-  bool _checkOverflow(Widget widget, BoxConstraints constraints) {
-    // This is a simplified check - in a real implementation, you'd use RenderBox
-    // For now, we'll use the constraints to estimate overflow
-    final availableWidth = constraints.maxWidth;
-    final availableHeight = constraints.maxHeight;
-
-    // Estimate if content will overflow based on available space
-    // This is a heuristic - you could make this more sophisticated
-    return availableWidth < 500 || availableHeight < 400;
   }
 
   Widget _buildLightIndicator(String label, String description, IconData icon, bool isOn, bool shouldBlink) {

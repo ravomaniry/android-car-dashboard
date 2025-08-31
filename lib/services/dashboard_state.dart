@@ -8,6 +8,7 @@ class DashboardState extends ChangeNotifier {
   bool _demoMode = false;
   bool _bluetoothConnected = false;
   String _connectionStatus = 'Disconnected';
+  bool _isSmallScreen = false;
 
   // Demo mode timers
   Timer? _demoTimer;
@@ -19,6 +20,7 @@ class DashboardState extends ChangeNotifier {
   bool get demoMode => _demoMode;
   bool get bluetoothConnected => _bluetoothConnected;
   String get connectionStatus => _connectionStatus;
+  bool get isSmallScreen => _isSmallScreen;
 
   // Update dashboard data
   void updateData(DashboardData newData) {
@@ -76,6 +78,39 @@ class DashboardState extends ChangeNotifier {
     _bluetoothConnected = connected;
     notifyListeners();
   }
+
+  // Small screen state management
+  Set<String> _sectionsRequestingSmallScreen = {};
+
+  void requestSmallScreenMode(String sectionName) {
+    _sectionsRequestingSmallScreen.add(sectionName);
+    if (!_isSmallScreen) {
+      _isSmallScreen = true;
+      notifyListeners();
+    }
+  }
+
+  void requestBigScreenMode(String sectionName) {
+    _sectionsRequestingSmallScreen.remove(sectionName);
+    
+    // Only exit small screen mode if NO sections are requesting it
+    if (_sectionsRequestingSmallScreen.isEmpty && _isSmallScreen) {
+      _isSmallScreen = false;
+      notifyListeners();
+    }
+  }
+
+  void setSmallScreenMode(bool isSmall) {
+    _isSmallScreen = isSmall;
+    if (!isSmall) {
+      // Clear all section requests when manually setting to big screen mode
+      _sectionsRequestingSmallScreen.clear();
+    }
+    notifyListeners();
+  }
+
+  // Debug method to see which sections are requesting small screen mode
+  Set<String> get sectionsRequestingSmallScreen => _sectionsRequestingSmallScreen;
 
   // Demo mode management
   void toggleDemoMode() {

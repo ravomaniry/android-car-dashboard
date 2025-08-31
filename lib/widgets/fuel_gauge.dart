@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'dart:math' as math;
+import '../services/dashboard_state.dart';
 
 class FuelGauge extends StatelessWidget {
   final double fuelLevel;
@@ -11,87 +13,134 @@ class FuelGauge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSmallScreen = MediaQuery.of(context).size.width < 850;
+    return Consumer<DashboardState>(
+      builder: (context, dashboardState, child) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final isSmallScreen = dashboardState.isSmallScreen;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        border: Border.all(color: const Color(0xFF00FF41), width: 1),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(color: const Color(0xFF00FF41).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2)),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Floating icon for small screens
-          if (isSmallScreen)
-            Positioned(top: 8, left: 8, child: Icon(Icons.local_gas_station, color: const Color(0xFF00FF41), size: 16)),
+            // Check if this section needs small screen mode
+            final needsSmallScreen = _checkIfNeedsSmallScreen(constraints);
 
-          Column(
-            children: [
-              // Header (only show on normal screens)
-              if (!isSmallScreen) ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.local_gas_station, color: const Color(0xFF00FF41), size: 16),
-                    const SizedBox(width: 8),
-                    Text(
-                      'FUEL LEVEL',
-                      style: GoogleFonts.firaCode(
-                        color: const Color(0xFF00FF41),
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
+            // Notify state manager
+            if (needsSmallScreen && !isSmallScreen) {
+              // Use post-frame callback to avoid build-time state changes
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                dashboardState.requestSmallScreenMode('FuelGauge');
+              });
+            } else if (!needsSmallScreen && isSmallScreen) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                dashboardState.requestBigScreenMode('FuelGauge');
+              });
+            }
+
+            return Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1A1A),
+                border: Border.all(color: const Color(0xFF00FF41), width: 1),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(color: const Color(0xFF00FF41).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2)),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  // Floating icon for small screens
+                  if (isSmallScreen)
+                    Positioned(
+                      top: 4,
+                      left: 4,
+                      child: Icon(Icons.local_gas_station, color: const Color(0xFF00FF41), size: 16),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-              ],
 
-              // Gauge
-              Expanded(
-                child: Center(
-                  child: SizedBox(
-                    width: isSmallScreen ? 100 : 120,
-                    height: isSmallScreen ? 100 : 120,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Background gauge
-                        CustomPaint(
-                          size: Size(isSmallScreen ? 100 : 120, isSmallScreen ? 100 : 120),
-                          painter: FuelGaugePainter(fuelLevel: fuelLevel),
-                        ),
-
-                        // Fuel level display
-                        Column(
+                  Column(
+                    children: [
+                      // Header (only show on normal screens)
+                      if (!isSmallScreen) ...[
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            Icon(Icons.local_gas_station, color: const Color(0xFF00FF41), size: 16),
+                            const SizedBox(width: 8),
                             Text(
-                              '${fuelLevel.toInt()}%',
-                              style: GoogleFonts.orbitron(
-                                color: _getFuelColor(fuelLevel),
-                                fontSize: isSmallScreen ? 20 : 24,
+                              'FUEL LEVEL',
+                              style: GoogleFonts.firaCode(
+                                color: const Color(0xFF00FF41),
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            if (!isSmallScreen)
-                              Text('FUEL', style: GoogleFonts.firaCode(color: const Color(0xFF888888), fontSize: 8)),
                           ],
                         ),
+                        const SizedBox(height: 8),
                       ],
-                    ),
+
+                      // Gauge - fill available space
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, gaugeConstraints) {
+                            final gaugeSize = math.min(gaugeConstraints.maxWidth, gaugeConstraints.maxHeight) * 0.8;
+                            return Center(
+                              child: SizedBox(
+                                width: gaugeSize,
+                                height: gaugeSize,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    // Background gauge
+                                    CustomPaint(
+                                      size: Size(gaugeSize, gaugeSize),
+                                      painter: FuelGaugePainter(fuelLevel: fuelLevel),
+                                    ),
+
+                                    // Fuel level display
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '${fuelLevel.toInt()}%',
+                                          style: GoogleFonts.orbitron(
+                                            color: _getFuelColor(fuelLevel),
+                                            fontSize: gaugeSize * 0.2,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        if (!isSmallScreen)
+                                          Text(
+                                            'FUEL',
+                                            style: GoogleFonts.firaCode(
+                                              color: const Color(0xFF888888),
+                                              fontSize: gaugeSize * 0.07,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
+  }
+
+  // Check if this section needs small screen mode based on available space
+  bool _checkIfNeedsSmallScreen(BoxConstraints constraints) {
+    final availableWidth = constraints.maxWidth;
+    final availableHeight = constraints.maxHeight;
+
+    // Use the same threshold as other sections (850px width)
+    return availableWidth < 850 || availableHeight < 400;
   }
 
   Color _getFuelColor(double level) {
