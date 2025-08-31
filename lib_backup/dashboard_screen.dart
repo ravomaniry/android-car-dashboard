@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/dashboard_state.dart';
 import 'services/bluetooth_service.dart';
+import 'services/gps_service.dart';
 import 'widgets/warning_section.dart';
 import 'widgets/speedometer_widget.dart';
 import 'widgets/trip_detail_item.dart';
@@ -23,11 +24,17 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   @override
   void initState() {
     super.initState();
-    _blinkController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
+    _blinkController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
     _blinkAnimation = Tween<double>(
       begin: 0.3,
       end: 1.0,
-    ).animate(CurvedAnimation(parent: _blinkController, curve: Curves.easeInOut));
+    ).animate(CurvedAnimation(
+      parent: _blinkController,
+      curve: Curves.easeInOut,
+    ));
     _blinkController.repeat(reverse: true);
   }
 
@@ -65,7 +72,9 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         ),
                         const SizedBox(height: 16),
                         // Coolant Temperature
-                        Expanded(child: CoolantGauge(temperature: data.coolantTemp)),
+                        Expanded(
+                          child: CoolantGauge(temperature: data.coolantTemp),
+                        ),
                       ],
                     ),
                   ),
@@ -79,7 +88,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         // Speedometer (takes most space)
                         Expanded(
                           flex: 3,
-                          child: SpeedometerWidget(speed: data.speed, rpm: data.rpm),
+                          child: SpeedometerWidget(
+                            speed: data.speed,
+                            rpm: data.rpm,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         // Trip Details (bottom of middle column)
@@ -145,7 +157,9 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         ),
                         const SizedBox(height: 16),
                         // Fuel Level
-                        Expanded(child: FuelGauge(fuelLevel: data.fuelLevel)),
+                        Expanded(
+                          child: FuelGauge(fuelLevel: data.fuelLevel),
+                        ),
                       ],
                     ),
                   ),
@@ -155,29 +169,26 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           },
         ),
       ),
-      floatingActionButton: Consumer2<DashboardState, BluetoothService>(
-        builder: (context, dashboardState, bluetoothService, child) {
+      floatingActionButton: Consumer3<DashboardState, BluetoothService, GpsService>(
+        builder: (context, dashboardState, bluetoothService, gpsService, child) {
           return Column(
             mainAxisAlignment: MainAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Connection Status Indicator
+              // GPS Start/Stop Button
               if (!dashboardState.demoMode)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A1A),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: bluetoothService.isAuthenticated ? const Color(0xFF00FF41) : const Color(0xFFFF5722),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    bluetoothService.status,
-                    style: const TextStyle(color: Colors.white, fontSize: 10, fontFamily: 'FiraCode'),
+                FloatingActionButton(
+                  heroTag: "gps",
+                  mini: true,
+                  onPressed: gpsService.isTracking ? () => gpsService.stopTracking() : () => gpsService.startTracking(),
+                  backgroundColor: gpsService.isTracking ? const Color(0xFF00FF41) : const Color(0xFF1A1A1A),
+                  child: Icon(
+                    gpsService.isTracking ? Icons.gps_fixed : Icons.gps_not_fixed,
+                    color: gpsService.isTracking ? Colors.black : const Color(0xFF00D9FF),
+                    size: 20,
                   ),
                 ),
+
               const SizedBox(height: 8),
 
               // Bluetooth Connect/Disconnect Button
@@ -196,7 +207,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00D9FF)),
                           ),
                         )
-                      : const Icon(Icons.bluetooth, color: Color(0xFF00D9FF), size: 20),
+                      : const Icon(
+                          Icons.bluetooth,
+                          color: Color(0xFF00D9FF),
+                          size: 20,
+                        ),
                 ),
 
               if (!dashboardState.demoMode && bluetoothService.isAuthenticated)
@@ -205,7 +220,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   mini: true,
                   onPressed: () => bluetoothService.disconnect(),
                   backgroundColor: const Color(0xFFFF5722),
-                  child: const Icon(Icons.bluetooth_disabled, color: Colors.white, size: 20),
+                  child: const Icon(
+                    Icons.bluetooth_disabled,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                 ),
 
               const SizedBox(height: 8),
@@ -221,7 +240,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 ),
                 label: Text(
                   dashboardState.demoMode ? 'STOP DEMO' : 'START DEMO',
-                  style: const TextStyle(color: Colors.white, fontFamily: 'FiraCode', fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'FiraCode',
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],

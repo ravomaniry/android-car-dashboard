@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../services/bluetooth_service.dart';
 import '../services/gps_service.dart';
+import '../services/dashboard_state.dart';
 
 class InfoSection extends StatelessWidget {
   final bool drlOn;
@@ -26,21 +27,34 @@ class InfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Try to render with normal layout first
+        final normalLayout = _buildNormalLayout(constraints);
+
+        // Check if normal layout overflows
+        final isOverflowing = _checkOverflow(normalLayout, constraints);
+        final isSmallScreen = isOverflowing;
+
+        // Log layout decision
+        print('InfoSection - Available space: ${constraints.maxWidth} x ${constraints.maxHeight}');
+        print('InfoSection - Overflow detected: $isOverflowing, using small screen: $isSmallScreen');
+
+        // Return appropriate layout
+        return isSmallScreen ? _buildSmallScreenLayout(constraints) : normalLayout;
+      },
+    );
+  }
+
+  Widget _buildNormalLayout(BoxConstraints constraints) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A1A),
-        border: Border.all(
-          color: const Color(0xFF00FF41),
-          width: 1,
-        ),
+        border: Border.all(color: const Color(0xFF00FF41), width: 1),
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF00FF41).withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
+          BoxShadow(color: const Color(0xFF00FF41).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2)),
         ],
       ),
       child: Column(
@@ -49,19 +63,11 @@ class InfoSection extends StatelessWidget {
           // Header
           Row(
             children: [
-              Icon(
-                Icons.info_outline,
-                color: const Color(0xFF00FF41),
-                size: 16,
-              ),
+              Icon(Icons.info_outline, color: const Color(0xFF00FF41), size: 16),
               const SizedBox(width: 8),
               Text(
                 'VEHICLE STATUS',
-                style: GoogleFonts.firaCode(
-                  color: const Color(0xFF00FF41),
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: GoogleFonts.firaCode(color: const Color(0xFF00FF41), fontSize: 12, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -86,13 +92,7 @@ class InfoSection extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildLightIndicator(
-                        'DRL',
-                        'Daytime Running Lights',
-                        Icons.wb_sunny,
-                        drlOn,
-                        false,
-                      ),
+                      child: _buildLightIndicator('DRL', 'Daytime Running Lights', Icons.wb_sunny, drlOn, false),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -106,13 +106,7 @@ class InfoSection extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: _buildLightIndicator(
-                        'HIGH',
-                        'High Beam Headlights',
-                        Icons.highlight,
-                        highBeamOn,
-                        false,
-                      ),
+                      child: _buildLightIndicator('HIGH', 'High Beam Headlights', Icons.highlight, highBeamOn, false),
                     ),
                   ],
                 ),
@@ -143,13 +137,7 @@ class InfoSection extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: _buildSignalIndicator(
-                        'HAZ',
-                        'Hazard Lights',
-                        Icons.warning,
-                        hazardLights,
-                        hazardLights,
-                      ),
+                      child: _buildSignalIndicator('HAZ', 'Hazard Lights', Icons.warning, hazardLights, hazardLights),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -163,27 +151,68 @@ class InfoSection extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-                // Bluetooth Status Section
-                Text(
-                  'CONNECTION STATUS',
-                  style: GoogleFonts.firaCode(
-                    color: const Color(0xFF888888),
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
+  Widget _buildSmallScreenLayout(BoxConstraints constraints) {
+    return Container(
+      padding: const EdgeInsets.all(8), // Reduced padding for small screen
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        border: Border.all(color: const Color(0xFF00FF41), width: 1),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(color: const Color(0xFF00FF41).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Compact header - just icon
+          Center(child: Icon(Icons.info_outline, color: const Color(0xFF00FF41), size: 20)),
+          const SizedBox(height: 8),
+
+          // Compact lighting section - no titles, just indicators
+          Expanded(
+            child: Column(
+              children: [
+                // Light indicators in a row - compact
+                Row(
+                  children: [
+                    Expanded(child: _buildCompactLightIndicator('DRL', Icons.wb_sunny, drlOn)),
+                    const SizedBox(width: 4),
+                    Expanded(child: _buildCompactLightIndicator('LOW', Icons.lightbulb_outline, lowBeamOn)),
+                    const SizedBox(width: 4),
+                    Expanded(child: _buildCompactLightIndicator('HIGH', Icons.highlight, highBeamOn)),
+                  ],
                 ),
-                const SizedBox(height: 12),
 
+                const SizedBox(height: 8),
+
+                // Turn signals in a row - compact
                 Row(
                   children: [
                     Expanded(
-                      child: _buildBluetoothStatus(context),
+                      child: _buildCompactSignalIndicator(
+                        'L',
+                        Icons.keyboard_arrow_left,
+                        leftTurnSignal || hazardLights,
+                      ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 4),
+                    Expanded(child: _buildCompactSignalIndicator('HAZ', Icons.warning, hazardLights)),
+                    const SizedBox(width: 4),
                     Expanded(
-                      child: _buildGpsStatus(context),
+                      child: _buildCompactSignalIndicator(
+                        'R',
+                        Icons.keyboard_arrow_right,
+                        rightTurnSignal || hazardLights,
+                      ),
                     ),
                   ],
                 ),
@@ -195,23 +224,26 @@ class InfoSection extends StatelessWidget {
     );
   }
 
-  Widget _buildLightIndicator(
-    String label,
-    String description,
-    IconData icon,
-    bool isOn,
-    bool shouldBlink,
-  ) {
+  // Helper method to check if content overflows
+  bool _checkOverflow(Widget widget, BoxConstraints constraints) {
+    // This is a simplified check - in a real implementation, you'd use RenderBox
+    // For now, we'll use the constraints to estimate overflow
+    final availableWidth = constraints.maxWidth;
+    final availableHeight = constraints.maxHeight;
+
+    // Estimate if content will overflow based on available space
+    // This is a heuristic - you could make this more sophisticated
+    return availableWidth < 500 || availableHeight < 400;
+  }
+
+  Widget _buildLightIndicator(String label, String description, IconData icon, bool isOn, bool shouldBlink) {
     return Container(
       height: 60,
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: const Color(0xFF0F0F0F),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: isOn ? const Color(0xFF00FF41) : const Color(0xFF333333),
-          width: 1,
-        ),
+        border: Border.all(color: isOn ? const Color(0xFF00FF41) : const Color(0xFF333333), width: 1),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -222,19 +254,15 @@ class InfoSection extends StatelessWidget {
             builder: (context, child) {
               final color = isOn
                   ? (shouldBlink
-                      ? Color.lerp(
-                          const Color(0xFF00FF41).withOpacity(0.3),
-                          const Color(0xFF00FF41),
-                          blinkAnimation.value,
-                        )
-                      : const Color(0xFF00FF41))
+                        ? Color.lerp(
+                            const Color(0xFF00FF41).withOpacity(0.3),
+                            const Color(0xFF00FF41),
+                            blinkAnimation.value,
+                          )
+                        : const Color(0xFF00FF41))
                   : const Color(0xFF333333);
 
-              return Icon(
-                icon,
-                color: color,
-                size: 14,
-              );
+              return Icon(icon, color: color, size: 14);
             },
           ),
           const SizedBox(height: 2),
@@ -252,10 +280,7 @@ class InfoSection extends StatelessWidget {
           Flexible(
             child: Text(
               isOn ? 'ON' : 'OFF',
-              style: GoogleFonts.firaCode(
-                color: isOn ? const Color(0xFF888888) : const Color(0xFF444444),
-                fontSize: 6,
-              ),
+              style: GoogleFonts.firaCode(color: isOn ? const Color(0xFF888888) : const Color(0xFF444444), fontSize: 6),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -264,23 +289,52 @@ class InfoSection extends StatelessWidget {
     );
   }
 
-  Widget _buildSignalIndicator(
-    String label,
-    String description,
-    IconData icon,
-    bool isOn,
-    bool shouldBlink,
-  ) {
+  Widget _buildCompactLightIndicator(String label, IconData icon, bool isOn) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F0F0F),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: isOn ? const Color(0xFF00FF41) : const Color(0xFF333333), width: 1),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: isOn ? const Color(0xFF00FF41) : const Color(0xFF333333), size: 12),
+          const SizedBox(height: 2),
+          Flexible(
+            child: Text(
+              label,
+              style: GoogleFonts.firaCode(
+                color: isOn ? const Color(0xFF00FF41) : const Color(0xFF666666),
+                fontSize: 6,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Flexible(
+            child: Text(
+              isOn ? 'ON' : 'OFF',
+              style: GoogleFonts.firaCode(color: isOn ? const Color(0xFF888888) : const Color(0xFF444444), fontSize: 4),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSignalIndicator(String label, String description, IconData icon, bool isOn, bool shouldBlink) {
     return Container(
       height: 60,
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: const Color(0xFF0F0F0F),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: isOn ? Colors.orange : const Color(0xFF333333),
-          width: 1,
-        ),
+        border: Border.all(color: isOn ? Colors.orange : const Color(0xFF333333), width: 1),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -291,19 +345,11 @@ class InfoSection extends StatelessWidget {
             builder: (context, child) {
               final color = isOn
                   ? (shouldBlink
-                      ? Color.lerp(
-                          Colors.orange.withOpacity(0.3),
-                          Colors.orange,
-                          blinkAnimation.value,
-                        )
-                      : Colors.orange)
+                        ? Color.lerp(Colors.orange.withOpacity(0.3), Colors.orange, blinkAnimation.value)
+                        : Colors.orange)
                   : const Color(0xFF333333);
 
-              return Icon(
-                icon,
-                color: color,
-                size: 16,
-              );
+              return Icon(icon, color: color, size: 16);
             },
           ),
           const SizedBox(height: 4),
@@ -324,7 +370,39 @@ class InfoSection extends StatelessWidget {
     );
   }
 
-  Widget _buildBluetoothStatus(BuildContext context) {
+  Widget _buildCompactSignalIndicator(String label, IconData icon, bool isOn) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F0F0F),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: isOn ? Colors.orange : const Color(0xFF333333), width: 1),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: isOn ? Colors.orange : const Color(0xFF333333), size: 12),
+          const SizedBox(height: 2),
+          Flexible(
+            child: Text(
+              label,
+              style: GoogleFonts.firaCode(
+                color: isOn ? Colors.orange : const Color(0xFF666666),
+                fontSize: 6,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBluetoothStatus() {
     return Consumer<BluetoothService>(
       builder: (context, bluetoothService, child) {
         Color statusColor;
@@ -332,78 +410,73 @@ class InfoSection extends StatelessWidget {
         IconData statusIcon;
 
         if (bluetoothService.isAuthenticated) {
-          statusColor = const Color(0xFF00FF41); // Green for connected
-          statusText = 'CONNECTED';
-          statusIcon = Icons.bluetooth_connected;
+          statusColor = const Color(0xFFFF5722); // Red for disconnect
+          statusText = 'DISCONNECT';
+          statusIcon = Icons.bluetooth_disabled;
         } else if (bluetoothService.isConnecting) {
           statusColor = const Color(0xFF00D9FF); // Cyan for connecting
           statusText = 'CONNECTING';
           statusIcon = Icons.bluetooth_searching;
         } else {
-          statusColor = const Color(0xFF666666); // Gray for disconnected
-          statusText = 'DISCONNECTED';
-          statusIcon = Icons.bluetooth_disabled;
+          statusColor = const Color(0xFF00D9FF); // Blue for connect
+          statusText = 'CONNECT';
+          statusIcon = Icons.bluetooth;
         }
 
-        return Container(
-          height: 60,
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A1A1A),
-            border: Border.all(
-              color: statusColor,
-              width: 1,
+        return GestureDetector(
+          onTap: bluetoothService.isConnecting
+              ? null
+              : () {
+                  if (bluetoothService.isAuthenticated) {
+                    bluetoothService.disconnect();
+                  } else {
+                    bluetoothService.connectToDevice();
+                  }
+                },
+          child: Container(
+            height: 60,
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1A1A),
+              border: Border.all(color: statusColor, width: 1),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [BoxShadow(color: statusColor.withOpacity(0.1), blurRadius: 8)],
             ),
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: statusColor.withOpacity(0.1),
-                blurRadius: 8,
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                statusIcon,
-                color: statusColor,
-                size: 18,
-              ),
-              const SizedBox(height: 2),
-              Flexible(
-                child: Text(
-                  'BLUETOOTH',
-                  style: GoogleFonts.firaCode(
-                    color: const Color(0xFF888888),
-                    fontSize: 8,
-                    fontWeight: FontWeight.bold,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(statusIcon, color: statusColor, size: 18),
+                const SizedBox(height: 2),
+                Flexible(
+                  child: Text(
+                    'BLUETOOTH',
+                    style: GoogleFonts.firaCode(
+                      color: const Color(0xFF888888),
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              Flexible(
-                child: Text(
-                  statusText,
-                  style: GoogleFonts.firaCode(
-                    color: statusColor,
-                    fontSize: 8,
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Text(
+                    statusText,
+                    style: GoogleFonts.firaCode(color: statusColor, fontSize: 8, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildGpsStatus(BuildContext context) {
+  Widget _buildGpsStatus() {
     return Consumer<GpsService>(
       builder: (context, gpsService, child) {
         Color statusColor;
@@ -411,12 +484,12 @@ class InfoSection extends StatelessWidget {
         IconData statusIcon;
 
         if (gpsService.isTracking) {
-          statusColor = const Color(0xFF00FF41); // Green for tracking
-          statusText = 'TRACKING';
+          statusColor = const Color(0xFF00FF41); // Green for stop tracking
+          statusText = 'STOP GPS';
           statusIcon = Icons.gps_fixed;
         } else if (gpsService.hasLocationPermission) {
-          statusColor = const Color(0xFF00D9FF); // Cyan for ready
-          statusText = 'READY';
+          statusColor = const Color(0xFF00D9FF); // Cyan for start tracking
+          statusText = 'START GPS';
           statusIcon = Icons.gps_not_fixed;
         } else {
           statusColor = const Color(0xFF666666); // Gray for disabled
@@ -424,58 +497,127 @@ class InfoSection extends StatelessWidget {
           statusIcon = Icons.gps_off;
         }
 
-        return Container(
-          height: 60,
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A1A1A),
-            border: Border.all(
-              color: statusColor,
-              width: 1,
+        return GestureDetector(
+          onTap: gpsService.hasLocationPermission
+              ? () {
+                  if (gpsService.isTracking) {
+                    gpsService.stopTracking();
+                  } else {
+                    gpsService.startTracking();
+                  }
+                }
+              : null,
+          child: Container(
+            height: 60,
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1A1A),
+              border: Border.all(color: statusColor, width: 1),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [BoxShadow(color: statusColor.withOpacity(0.1), blurRadius: 8)],
             ),
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: statusColor.withOpacity(0.1),
-                blurRadius: 8,
-              ),
-            ],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(statusIcon, color: statusColor, size: 18),
+                const SizedBox(height: 2),
+                Flexible(
+                  child: Text(
+                    'GPS',
+                    style: GoogleFonts.firaCode(
+                      color: const Color(0xFF888888),
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Flexible(
+                  child: Text(
+                    statusText,
+                    style: GoogleFonts.firaCode(color: statusColor, fontSize: 8, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                statusIcon,
-                color: statusColor,
-                size: 18,
-              ),
-              const SizedBox(height: 2),
-              Flexible(
-                child: Text(
-                  'GPS',
-                  style: GoogleFonts.firaCode(
-                    color: const Color(0xFF888888),
-                    fontSize: 8,
-                    fontWeight: FontWeight.bold,
+        );
+      },
+    );
+  }
+
+  Widget _buildCompactGpsStatus() {
+    return Consumer<GpsService>(
+      builder: (context, gpsService, child) {
+        Color statusColor;
+        String statusText;
+        IconData statusIcon;
+
+        if (gpsService.isTracking) {
+          statusColor = const Color(0xFF00FF41); // Green for stop tracking
+          statusText = 'STOP GPS';
+          statusIcon = Icons.gps_fixed;
+        } else if (gpsService.hasLocationPermission) {
+          statusColor = const Color(0xFF00D9FF); // Cyan for start tracking
+          statusText = 'START GPS';
+          statusIcon = Icons.gps_not_fixed;
+        } else {
+          statusColor = const Color(0xFF666666); // Gray for disabled
+          statusText = 'DISABLED';
+          statusIcon = Icons.gps_off;
+        }
+
+        return GestureDetector(
+          onTap: gpsService.hasLocationPermission
+              ? () {
+                  if (gpsService.isTracking) {
+                    gpsService.stopTracking();
+                  } else {
+                    gpsService.startTracking();
+                  }
+                }
+              : null,
+          child: Container(
+            height: 40,
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1A1A),
+              border: Border.all(color: statusColor, width: 1),
+              borderRadius: BorderRadius.circular(4),
+              boxShadow: [BoxShadow(color: statusColor.withOpacity(0.1), blurRadius: 4)],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(statusIcon, color: statusColor, size: 12),
+                const SizedBox(height: 2),
+                Flexible(
+                  child: Text(
+                    'GPS',
+                    style: GoogleFonts.firaCode(
+                      color: const Color(0xFF888888),
+                      fontSize: 6,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              Flexible(
-                child: Text(
-                  statusText,
-                  style: GoogleFonts.firaCode(
-                    color: statusColor,
-                    fontSize: 8,
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Text(
+                    statusText,
+                    style: GoogleFonts.firaCode(color: statusColor, fontSize: 6, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

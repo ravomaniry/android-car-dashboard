@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/trip_data.dart';
+import '../models/dashboard_data.dart';
 import 'dashboard_state.dart';
 
 class GpsService extends ChangeNotifier {
@@ -127,7 +130,9 @@ class GpsService extends ChangeNotifier {
         timeLimit: Duration(seconds: 5), // Timeout after 5 seconds
       );
 
-      _positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+      _positionStream = Geolocator.getPositionStream(
+        locationSettings: locationSettings,
+      ).listen(
         _onLocationUpdate,
         onError: (error) {
           debugPrint('GPS error: $error');
@@ -174,8 +179,7 @@ class GpsService extends ChangeNotifier {
 
     // Calculate distance if we have a previous position
     if (_lastPosition != null && _lastUpdateTime != null) {
-      double distance =
-          Geolocator.distanceBetween(
+      double distance = Geolocator.distanceBetween(
             _lastPosition!.latitude,
             _lastPosition!.longitude,
             position.latitude,
@@ -233,7 +237,10 @@ class GpsService extends ChangeNotifier {
   }
 
   Future<void> _startNewTrip() async {
-    _currentTrip = TripData(startTime: DateTime.now(), isActive: true);
+    _currentTrip = TripData(
+      startTime: DateTime.now(),
+      isActive: true,
+    );
 
     // Reset trip variables
     _totalDistance = 0.0;
@@ -282,7 +289,10 @@ class GpsService extends ChangeNotifier {
   Future<void> _endCurrentTrip() async {
     if (_currentTrip == null || !_currentTrip!.isActive) return;
 
-    _currentTrip = _currentTrip!.copyWith(endTime: DateTime.now(), isActive: false);
+    _currentTrip = _currentTrip!.copyWith(
+      endTime: DateTime.now(),
+      isActive: false,
+    );
 
     await _saveCurrentTrip();
     debugPrint('Trip ended: ${_currentTrip!.endTime}');

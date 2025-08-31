@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:crypto/crypto.dart';
@@ -36,9 +37,8 @@ class BluetoothService extends ChangeNotifier {
       ];
 
       final statuses = await permissions.request();
-      return statuses.values.every(
-        (status) => status == PermissionStatus.granted || status == PermissionStatus.limited,
-      );
+      return statuses.values
+          .every((status) => status == PermissionStatus.granted || status == PermissionStatus.limited);
     }
     return true; // iOS doesn't need explicit permission for basic Bluetooth
   }

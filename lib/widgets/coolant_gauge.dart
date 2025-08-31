@@ -8,127 +8,87 @@ class CoolantGauge extends StatelessWidget {
   static const double maxTemp = 120.0;
   static const double optimalTemp = 90.0;
 
-  const CoolantGauge({
-    super.key,
-    required this.temperature,
-  });
+  const CoolantGauge({super.key, required this.temperature});
 
   @override
   Widget build(BuildContext context) {
+    final isSmallScreen = MediaQuery.of(context).size.width < 850;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A1A),
-        border: Border.all(
-          color: const Color(0xFF00FF41),
-          width: 1,
-        ),
+        border: Border.all(color: const Color(0xFF00FF41), width: 1),
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF00FF41).withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
+          BoxShadow(color: const Color(0xFF00FF41).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2)),
         ],
       ),
-      child: Column(
+      child: Stack(
         children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          // Floating icon for small screens
+          if (isSmallScreen)
+            Positioned(top: 8, left: 8, child: Icon(Icons.thermostat, color: const Color(0xFF00FF41), size: 16)),
+
+          Column(
             children: [
-              Icon(
-                Icons.thermostat,
-                color: const Color(0xFF00FF41),
-                size: 16,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'COOLANT',
-                style: GoogleFonts.firaCode(
-                  color: const Color(0xFF00FF41),
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Gauge
-          Expanded(
-            child: Center(
-              child: SizedBox(
-                width: 120,
-                height: 120,
-                child: Stack(
-                  alignment: Alignment.center,
+              // Header (only show on normal screens)
+              if (!isSmallScreen) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Background gauge
-                    CustomPaint(
-                      size: const Size(120, 120),
-                      painter: CoolantGaugePainter(temperature: temperature),
-                    ),
-
-                    // Temperature display
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${temperature.toInt()}°',
-                          style: GoogleFonts.orbitron(
-                            color: _getTemperatureColor(temperature),
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          'CELSIUS',
-                          style: GoogleFonts.firaCode(
-                            color: const Color(0xFF888888),
-                            fontSize: 8,
-                          ),
-                        ),
-                      ],
+                    Icon(Icons.thermostat, color: const Color(0xFF00FF41), size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      'COOLANT',
+                      style: GoogleFonts.firaCode(
+                        color: const Color(0xFF00FF41),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ),
-          ),
+                const SizedBox(height: 16),
+              ],
 
-          const SizedBox(height: 16),
+              // Gauge
+              Expanded(
+                child: Center(
+                  child: SizedBox(
+                    width: isSmallScreen ? 100 : 120,
+                    height: isSmallScreen ? 100 : 120,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Background gauge
+                        CustomPaint(
+                          size: Size(isSmallScreen ? 100 : 120, isSmallScreen ? 100 : 120),
+                          painter: CoolantGaugePainter(temperature: temperature),
+                        ),
 
-          // Status indicator
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F0F0F),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color: _getTemperatureColor(temperature),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _getTemperatureStatus(temperature),
-                  style: GoogleFonts.firaCode(
-                    color: _getTemperatureColor(temperature),
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                        // Temperature display
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '${temperature.toInt()}°',
+                              style: GoogleFonts.orbitron(
+                                color: _getTemperatureColor(temperature),
+                                fontSize: isSmallScreen ? 20 : 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (!isSmallScreen)
+                              Text('CELSIUS', style: GoogleFonts.firaCode(color: const Color(0xFF888888), fontSize: 8)),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                Icon(
-                  _getTemperatureIcon(temperature),
-                  color: _getTemperatureColor(temperature),
-                  size: 12,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
@@ -139,18 +99,6 @@ class CoolantGauge extends StatelessWidget {
     if (temp < 70) return Colors.blue;
     if (temp > 100) return Colors.red;
     return const Color(0xFF00FF41);
-  }
-
-  String _getTemperatureStatus(double temp) {
-    if (temp < 70) return 'COLD';
-    if (temp > 100) return 'HOT';
-    return 'OPTIMAL';
-  }
-
-  IconData _getTemperatureIcon(double temp) {
-    if (temp < 70) return Icons.ac_unit;
-    if (temp > 100) return Icons.whatshot;
-    return Icons.check_circle_outline;
   }
 }
 
@@ -176,8 +124,10 @@ class CoolantGaugePainter extends CustomPainter {
     canvas.drawCircle(center, radius, paint);
 
     // Calculate current temperature position
-    final normalizedTemp =
-        ((temperature - CoolantGauge.minTemp) / (CoolantGauge.maxTemp - CoolantGauge.minTemp)).clamp(0.0, 1.0);
+    final normalizedTemp = ((temperature - CoolantGauge.minTemp) / (CoolantGauge.maxTemp - CoolantGauge.minTemp)).clamp(
+      0.0,
+      1.0,
+    );
     final currentTickIndex = (normalizedTemp * numTicks).round();
 
     // Get uniform color for all ticks based on current temperature criticality
@@ -202,16 +152,9 @@ class CoolantGaugePainter extends CustomPainter {
 
       // Calculate tick positions pointing toward center
       final tickLength = i <= currentTickIndex ? 12 : 8;
-      final tickStart = center +
-          Offset(
-            math.cos(angle) * (radius - tickLength),
-            math.sin(angle) * (radius - tickLength),
-          );
-      final tickEnd = center +
-          Offset(
-            math.cos(angle) * radius,
-            math.sin(angle) * radius,
-          );
+      final tickStart =
+          center + Offset(math.cos(angle) * (radius - tickLength), math.sin(angle) * (radius - tickLength));
+      final tickEnd = center + Offset(math.cos(angle) * radius, math.sin(angle) * radius);
 
       canvas.drawLine(tickStart, tickEnd, paint);
     }

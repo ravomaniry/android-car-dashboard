@@ -23,11 +23,17 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   @override
   void initState() {
     super.initState();
-    _blinkController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
+    _blinkController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
     _blinkAnimation = Tween<double>(
       begin: 0.3,
       end: 1.0,
-    ).animate(CurvedAnimation(parent: _blinkController, curve: Curves.easeInOut));
+    ).animate(CurvedAnimation(
+      parent: _blinkController,
+      curve: Curves.easeInOut,
+    ));
     _blinkController.repeat(reverse: true);
   }
 
@@ -59,13 +65,14 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         Expanded(
                           child: WarningSection(
                             oilWarning: data.oilWarning,
-                            batteryVoltage: data.batteryVoltage,
                             blinkAnimation: _blinkAnimation,
                           ),
                         ),
                         const SizedBox(height: 16),
                         // Coolant Temperature
-                        Expanded(child: CoolantGauge(temperature: data.coolantTemp)),
+                        Expanded(
+                          child: CoolantGauge(temperature: data.coolantTemp),
+                        ),
                       ],
                     ),
                   ),
@@ -79,7 +86,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         // Speedometer (takes most space)
                         Expanded(
                           flex: 3,
-                          child: SpeedometerWidget(speed: data.speed, rpm: data.rpm),
+                          child: SpeedometerWidget(
+                            speed: data.speed,
+                            rpm: data.rpm,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         // Trip Details (bottom of middle column)
@@ -145,7 +155,9 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         ),
                         const SizedBox(height: 16),
                         // Fuel Level
-                        Expanded(child: FuelGauge(fuelLevel: data.fuelLevel)),
+                        Expanded(
+                          child: FuelGauge(fuelLevel: data.fuelLevel),
+                        ),
                       ],
                     ),
                   ),
@@ -175,7 +187,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   ),
                   child: Text(
                     bluetoothService.status,
-                    style: const TextStyle(color: Colors.white, fontSize: 10, fontFamily: 'FiraCode'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontFamily: 'FiraCode',
+                    ),
                   ),
                 ),
               const SizedBox(height: 8),
@@ -196,7 +212,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00D9FF)),
                           ),
                         )
-                      : const Icon(Icons.bluetooth, color: Color(0xFF00D9FF), size: 20),
+                      : const Icon(
+                          Icons.bluetooth,
+                          color: Color(0xFF00D9FF),
+                          size: 20,
+                        ),
                 ),
 
               if (!dashboardState.demoMode && bluetoothService.isAuthenticated)
@@ -205,7 +225,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   mini: true,
                   onPressed: () => bluetoothService.disconnect(),
                   backgroundColor: const Color(0xFFFF5722),
-                  child: const Icon(Icons.bluetooth_disabled, color: Colors.white, size: 20),
+                  child: const Icon(
+                    Icons.bluetooth_disabled,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                 ),
 
               const SizedBox(height: 8),
@@ -221,7 +245,11 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 ),
                 label: Text(
                   dashboardState.demoMode ? 'STOP DEMO' : 'START DEMO',
-                  style: const TextStyle(color: Colors.white, fontFamily: 'FiraCode', fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'FiraCode',
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
