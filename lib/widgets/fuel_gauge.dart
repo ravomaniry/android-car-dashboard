@@ -291,12 +291,6 @@ class FuelGaugePainter extends CustomPainter {
     return const Color(0xFF00FF41); // Green for good
   }
 
-  Color _getArcColor(double level) {
-    if (level <= FuelGauge.lowFuelThreshold) return Colors.red;
-    if (level <= 25) return Colors.orange;
-    return const Color(0xFF00FF41);
-  }
-
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return oldDelegate is FuelGaugePainter && oldDelegate.fuelLevel != fuelLevel;

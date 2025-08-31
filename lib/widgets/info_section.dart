@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../services/bluetooth_service.dart';
 
 class InfoSection extends StatelessWidget {
   final bool drlOn;
@@ -160,6 +162,20 @@ class InfoSection extends StatelessWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+
+                // Bluetooth Status Section
+                Text(
+                  'CONNECTION STATUS',
+                  style: GoogleFonts.firaCode(
+                    color: const Color(0xFF888888),
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                _buildBluetoothStatus(context),
               ],
             ),
           ),
@@ -294,6 +310,85 @@ class InfoSection extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBluetoothStatus(BuildContext context) {
+    return Consumer<BluetoothService>(
+      builder: (context, bluetoothService, child) {
+        Color statusColor;
+        String statusText;
+        IconData statusIcon;
+
+        if (bluetoothService.isAuthenticated) {
+          statusColor = const Color(0xFF00FF41); // Green for connected
+          statusText = 'CONNECTED';
+          statusIcon = Icons.bluetooth_connected;
+        } else if (bluetoothService.isConnecting) {
+          statusColor = const Color(0xFF00D9FF); // Cyan for connecting
+          statusText = 'CONNECTING';
+          statusIcon = Icons.bluetooth_searching;
+        } else {
+          statusColor = const Color(0xFF666666); // Gray for disconnected
+          statusText = 'DISCONNECTED';
+          statusIcon = Icons.bluetooth_disabled;
+        }
+
+        return Container(
+          height: 60,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1A1A),
+            border: Border.all(
+              color: statusColor,
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: statusColor.withOpacity(0.1),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                statusIcon,
+                color: statusColor,
+                size: 18,
+              ),
+              const SizedBox(height: 2),
+              Flexible(
+                child: Text(
+                  'BLUETOOTH',
+                  style: GoogleFonts.firaCode(
+                    color: const Color(0xFF888888),
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Flexible(
+                child: Text(
+                  statusText,
+                  style: GoogleFonts.firaCode(
+                    color: statusColor,
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -65,7 +65,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                         Expanded(
                           child: WarningSection(
                             oilWarning: data.oilWarning,
-                            batteryVoltage: data.batteryVoltage,
                             blinkAnimation: _blinkAnimation,
                           ),
                         ),
@@ -174,6 +173,29 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
             mainAxisAlignment: MainAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Connection Status Indicator
+              if (!dashboardState.demoMode)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A1A1A),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: bluetoothService.isAuthenticated ? const Color(0xFF00FF41) : const Color(0xFFFF5722),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    bluetoothService.status,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontFamily: 'FiraCode',
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 8),
+
               // Bluetooth Connect/Disconnect Button
               if (!dashboardState.demoMode && !bluetoothService.isAuthenticated)
                 FloatingActionButton(

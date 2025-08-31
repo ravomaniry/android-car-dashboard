@@ -3,11 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 
 class WarningSection extends StatelessWidget {
   final bool oilWarning;
+  final double batteryVoltage;
   final Animation<double> blinkAnimation;
 
   const WarningSection({
     super.key,
     required this.oilWarning,
+    required this.batteryVoltage,
     required this.blinkAnimation,
   });
 
@@ -66,12 +68,75 @@ class WarningSection extends StatelessWidget {
                   'LOW PRESSURE',
                 ),
                 const SizedBox(height: 12),
-                _buildWarningItem(
+                _buildBatteryItem(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBatteryItem() {
+    // Determine battery status based on voltage
+    bool isLowVoltage = batteryVoltage > 0 && batteryVoltage < 12.0;
+    Color voltageColor = isLowVoltage ? Colors.red : const Color(0xFF00FF41);
+    String voltageText = batteryVoltage > 0 ? '${batteryVoltage.toStringAsFixed(1)}V' : '0.0V';
+
+    return Container(
+      height: 60,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        border: Border.all(
+          color: isLowVoltage ? Colors.red : const Color(0xFF333333),
+          width: 1,
+        ),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: voltageColor.withOpacity(0.1),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          AnimatedBuilder(
+            animation: blinkAnimation,
+            builder: (context, child) {
+              Color iconColor = isLowVoltage
+                  ? Color.lerp(Colors.red.withOpacity(0.3), Colors.red, blinkAnimation.value)!
+                  : voltageColor;
+
+              return Icon(
+                isLowVoltage ? Icons.battery_alert : Icons.battery_full,
+                color: iconColor,
+                size: 20,
+              );
+            },
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
                   'BATTERY',
-                  false,
-                  Icons.battery_full,
-                  'VOLTAGE OK',
-                  'LOW VOLTAGE',
+                  style: GoogleFonts.firaCode(
+                    color: const Color(0xFF888888),
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  voltageText,
+                  style: GoogleFonts.firaCode(
+                    color: voltageColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'dashboard_screen.dart';
+import 'services/dashboard_state.dart';
+import 'services/bluetooth_service.dart';
 
 void main() {
   runApp(const CarDashboardApp());
@@ -11,15 +14,26 @@ class CarDashboardApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Car Dashboard',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        fontFamily: 'FiraCode',
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => DashboardState()),
+        ChangeNotifierProxyProvider<DashboardState, BluetoothService>(
+          create: (context) => BluetoothService(
+            Provider.of<DashboardState>(context, listen: false),
+          ),
+          update: (context, dashboardState, bluetoothService) => bluetoothService ?? BluetoothService(dashboardState),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'Car Dashboard',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primarySwatch: Colors.green,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+          fontFamily: 'FiraCode',
+        ),
+        home: const FullscreenDashboard(),
       ),
-      home: const FullscreenDashboard(),
     );
   }
 }

@@ -227,13 +227,6 @@ class CoolantGaugePainter extends CustomPainter {
     return const Color(0xFFFF5722); // Red for overheating
   }
 
-  Color _getArcColor(double temp) {
-    if (temp < 70) return Colors.blue;
-    if (temp > 100) return Colors.red;
-    if (temp > 95) return Colors.orange;
-    return const Color(0xFF00FF41);
-  }
-
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return oldDelegate is CoolantGaugePainter && oldDelegate.temperature != temperature;
