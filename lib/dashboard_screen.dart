@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/dashboard_state.dart';
 import 'services/bluetooth_service.dart';
+import 'services/gps_service.dart';
 import 'widgets/warning_section.dart';
 import 'widgets/speedometer_widget.dart';
 import 'widgets/trip_detail_item.dart';
@@ -168,12 +169,28 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           },
         ),
       ),
-      floatingActionButton: Consumer2<DashboardState, BluetoothService>(
-        builder: (context, dashboardState, bluetoothService, child) {
+      floatingActionButton: Consumer3<DashboardState, BluetoothService, GpsService>(
+        builder: (context, dashboardState, bluetoothService, gpsService, child) {
           return Column(
             mainAxisAlignment: MainAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
             children: [
+              // GPS Start/Stop Button
+              if (!dashboardState.demoMode)
+                FloatingActionButton(
+                  heroTag: "gps",
+                  mini: true,
+                  onPressed: gpsService.isTracking ? () => gpsService.stopTracking() : () => gpsService.startTracking(),
+                  backgroundColor: gpsService.isTracking ? const Color(0xFF00FF41) : const Color(0xFF1A1A1A),
+                  child: Icon(
+                    gpsService.isTracking ? Icons.gps_fixed : Icons.gps_not_fixed,
+                    color: gpsService.isTracking ? Colors.black : const Color(0xFF00D9FF),
+                    size: 20,
+                  ),
+                ),
+
+              const SizedBox(height: 8),
+
               // Bluetooth Connect/Disconnect Button
               if (!dashboardState.demoMode && !bluetoothService.isAuthenticated)
                 FloatingActionButton(

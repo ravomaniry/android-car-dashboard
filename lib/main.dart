@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'dashboard_screen.dart';
 import 'services/dashboard_state.dart';
 import 'services/bluetooth_service.dart';
+import 'services/gps_service.dart';
 
 void main() {
   runApp(const CarDashboardApp());
@@ -22,6 +23,12 @@ class CarDashboardApp extends StatelessWidget {
             Provider.of<DashboardState>(context, listen: false),
           ),
           update: (context, dashboardState, bluetoothService) => bluetoothService ?? BluetoothService(dashboardState),
+        ),
+        ChangeNotifierProxyProvider<DashboardState, GpsService>(
+          create: (context) => GpsService(
+            Provider.of<DashboardState>(context, listen: false),
+          ),
+          update: (context, dashboardState, gpsService) => gpsService ?? GpsService(dashboardState),
         ),
       ],
       child: MaterialApp(

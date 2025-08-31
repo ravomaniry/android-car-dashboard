@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../services/bluetooth_service.dart';
+import '../services/gps_service.dart';
 
 class InfoSection extends StatelessWidget {
   final bool drlOn;
@@ -175,7 +176,17 @@ class InfoSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                _buildBluetoothStatus(context),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildBluetoothStatus(context),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildGpsStatus(context),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -364,6 +375,85 @@ class InfoSection extends StatelessWidget {
               Flexible(
                 child: Text(
                   'BLUETOOTH',
+                  style: GoogleFonts.firaCode(
+                    color: const Color(0xFF888888),
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Flexible(
+                child: Text(
+                  statusText,
+                  style: GoogleFonts.firaCode(
+                    color: statusColor,
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGpsStatus(BuildContext context) {
+    return Consumer<GpsService>(
+      builder: (context, gpsService, child) {
+        Color statusColor;
+        String statusText;
+        IconData statusIcon;
+
+        if (gpsService.isTracking) {
+          statusColor = const Color(0xFF00FF41); // Green for tracking
+          statusText = 'TRACKING';
+          statusIcon = Icons.gps_fixed;
+        } else if (gpsService.hasLocationPermission) {
+          statusColor = const Color(0xFF00D9FF); // Cyan for ready
+          statusText = 'READY';
+          statusIcon = Icons.gps_not_fixed;
+        } else {
+          statusColor = const Color(0xFF666666); // Gray for disabled
+          statusText = 'DISABLED';
+          statusIcon = Icons.gps_off;
+        }
+
+        return Container(
+          height: 60,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1A1A),
+            border: Border.all(
+              color: statusColor,
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: statusColor.withOpacity(0.1),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                statusIcon,
+                color: statusColor,
+                size: 18,
+              ),
+              const SizedBox(height: 2),
+              Flexible(
+                child: Text(
+                  'GPS',
                   style: GoogleFonts.firaCode(
                     color: const Color(0xFF888888),
                     fontSize: 8,
