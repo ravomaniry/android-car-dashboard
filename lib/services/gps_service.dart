@@ -247,6 +247,10 @@ class GpsService extends ChangeNotifier {
     _tripAverageTime = Duration.zero;
     _lastMeaningfulSpeedTime = null;
 
+    // Reset dashboard calculations for new trip
+    _dashboardState.resetFuelUsage();
+    _dashboardState.resetTemperatureAverage();
+
     await _saveCurrentTrip();
     debugPrint('New trip started: ${_currentTrip!.startTime}');
   }
@@ -296,7 +300,7 @@ class GpsService extends ChangeNotifier {
     }
 
     // Update dashboard state with GPS data
-    _dashboardState.updatePartialData(
+    _dashboardState.updateGpsData(
       speed: _currentSpeed,
       tripDistance: _totalDistance,
       avgSpeed: tripAvgSpeed, // Now shows true trip average
@@ -346,6 +350,10 @@ class GpsService extends ChangeNotifier {
     _tripAverageDistance = 0.0;
     _tripAverageTime = Duration.zero;
     _lastMeaningfulSpeedTime = null;
+
+    // Reset dashboard calculations
+    _dashboardState.resetFuelUsage();
+    _dashboardState.resetTemperatureAverage();
 
     // Clear the file
     if (_tripDataFile != null && await _tripDataFile!.exists()) {

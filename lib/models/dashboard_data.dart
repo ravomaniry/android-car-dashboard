@@ -1,25 +1,9 @@
-class DashboardData {
-  // Vehicle speed and engine data
-  final double speed;
-  final double rpm;
-
-  // Trip information
-  final double tripDistance;
-  final double fuelUsage;
-  final double avgTemperature;
-  final double avgSpeed;
-
-  // Gauge readings
+// ESP32 sensor data - received from ESP32 via Bluetooth
+class Esp32SensorData {
   final double coolantTemp;
   final double fuelLevel;
-
-  // Warning indicators
   final bool oilWarning;
-
-  // Battery information
   final double batteryVoltage;
-
-  // Light controls
   final bool drlOn;
   final bool lowBeamOn;
   final bool highBeamOn;
@@ -27,13 +11,7 @@ class DashboardData {
   final bool rightTurnSignal;
   final bool hazardLights;
 
-  const DashboardData({
-    this.speed = 0.0,
-    this.rpm = 0.0,
-    this.tripDistance = 0.0,
-    this.fuelUsage = 0.0,
-    this.avgTemperature = 0.0,
-    this.avgSpeed = 0.0,
+  const Esp32SensorData({
     this.coolantTemp = 0.0,
     this.fuelLevel = 0.0,
     this.oilWarning = false,
@@ -46,13 +24,7 @@ class DashboardData {
     this.hazardLights = false,
   });
 
-  DashboardData copyWith({
-    double? speed,
-    double? rpm,
-    double? tripDistance,
-    double? fuelUsage,
-    double? avgTemperature,
-    double? avgSpeed,
+  Esp32SensorData copyWith({
     double? coolantTemp,
     double? fuelLevel,
     bool? oilWarning,
@@ -64,13 +36,7 @@ class DashboardData {
     bool? rightTurnSignal,
     bool? hazardLights,
   }) {
-    return DashboardData(
-      speed: speed ?? this.speed,
-      rpm: rpm ?? this.rpm,
-      tripDistance: tripDistance ?? this.tripDistance,
-      fuelUsage: fuelUsage ?? this.fuelUsage,
-      avgTemperature: avgTemperature ?? this.avgTemperature,
-      avgSpeed: avgSpeed ?? this.avgSpeed,
+    return Esp32SensorData(
       coolantTemp: coolantTemp ?? this.coolantTemp,
       fuelLevel: fuelLevel ?? this.fuelLevel,
       oilWarning: oilWarning ?? this.oilWarning,
@@ -86,13 +52,7 @@ class DashboardData {
 
   @override
   String toString() {
-    return 'DashboardData('
-        'speed: $speed, '
-        'rpm: $rpm, '
-        'tripDistance: $tripDistance, '
-        'fuelUsage: $fuelUsage, '
-        'avgTemperature: $avgTemperature, '
-        'avgSpeed: $avgSpeed, '
+    return 'Esp32SensorData('
         'coolantTemp: $coolantTemp, '
         'fuelLevel: $fuelLevel, '
         'oilWarning: $oilWarning, '
@@ -105,4 +65,73 @@ class DashboardData {
         'hazardLights: $hazardLights'
         ')';
   }
+}
+
+// Complete dashboard data - combines ESP32 sensor data with GPS-calculated data
+class DashboardData {
+  // GPS-calculated data
+  final double speed;
+  final double rpm; // Can be removed if not needed
+  final double tripDistance;
+  final double fuelUsage;
+  final double avgTemperature;
+  final double avgSpeed;
+
+  // ESP32 sensor data
+  final Esp32SensorData sensorData;
+
+  const DashboardData({
+    this.speed = 0.0,
+    this.rpm = 0.0,
+    this.tripDistance = 0.0,
+    this.fuelUsage = 0.0,
+    this.avgTemperature = 0.0,
+    this.avgSpeed = 0.0,
+    this.sensorData = const Esp32SensorData(),
+  });
+
+  DashboardData copyWith({
+    double? speed,
+    double? rpm,
+    double? tripDistance,
+    double? fuelUsage,
+    double? avgTemperature,
+    double? avgSpeed,
+    Esp32SensorData? sensorData,
+  }) {
+    return DashboardData(
+      speed: speed ?? this.speed,
+      rpm: rpm ?? this.rpm,
+      tripDistance: tripDistance ?? this.tripDistance,
+      fuelUsage: fuelUsage ?? this.fuelUsage,
+      avgTemperature: avgTemperature ?? this.avgTemperature,
+      avgSpeed: avgSpeed ?? this.avgSpeed,
+      sensorData: sensorData ?? this.sensorData,
+    );
+  }
+
+  @override
+  String toString() {
+    return 'DashboardData('
+        'speed: $speed, '
+        'rpm: $rpm, '
+        'tripDistance: $tripDistance, '
+        'fuelUsage: $fuelUsage, '
+        'avgTemperature: $avgTemperature, '
+        'avgSpeed: $avgSpeed, '
+        'sensorData: $sensorData'
+        ')';
+  }
+
+  // Helper getters for backward compatibility
+  double get coolantTemp => sensorData.coolantTemp;
+  double get fuelLevel => sensorData.fuelLevel;
+  bool get oilWarning => sensorData.oilWarning;
+  double get batteryVoltage => sensorData.batteryVoltage;
+  bool get drlOn => sensorData.drlOn;
+  bool get lowBeamOn => sensorData.lowBeamOn;
+  bool get highBeamOn => sensorData.highBeamOn;
+  bool get leftTurnSignal => sensorData.leftTurnSignal;
+  bool get rightTurnSignal => sensorData.rightTurnSignal;
+  bool get hazardLights => sensorData.hazardLights;
 }

@@ -173,17 +173,11 @@ class BluetoothService extends ChangeNotifier {
 
   void _parseIncomingData(String data) {
     // Parse JSON data from ESP32
-    // Expected format: {"speed":85.5,"rpm":2500,"coolantTemp":82.0,...}
+    // Expected format: {"coolantTemp":82.0,"fuelLevel":65.0,"oilWarning":false,...}
     try {
       final Map<String, dynamic> json = jsonDecode(data);
 
-      final dashboardData = DashboardData(
-        speed: (json['speed'] ?? 0.0).toDouble(),
-        rpm: (json['rpm'] ?? 0.0).toDouble(),
-        tripDistance: (json['tripDistance'] ?? 0.0).toDouble(),
-        fuelUsage: (json['fuelUsage'] ?? 0.0).toDouble(),
-        avgTemperature: (json['avgTemperature'] ?? 0.0).toDouble(),
-        avgSpeed: (json['avgSpeed'] ?? 0.0).toDouble(),
+      final esp32SensorData = Esp32SensorData(
         coolantTemp: (json['coolantTemp'] ?? 0.0).toDouble(),
         fuelLevel: (json['fuelLevel'] ?? 0.0).toDouble(),
         oilWarning: json['oilWarning'] ?? false,
@@ -196,7 +190,7 @@ class BluetoothService extends ChangeNotifier {
         hazardLights: json['hazardLights'] ?? false,
       );
 
-      _dashboardState.updateData(dashboardData);
+      _dashboardState.updateEsp32SensorData(esp32SensorData);
     } catch (e) {
       debugPrint('Failed to parse incoming data: $data, Error: $e');
     }
