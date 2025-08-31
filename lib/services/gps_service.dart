@@ -20,11 +20,16 @@ class GpsService extends ChangeNotifier {
   bool _hasLocationPermission = false;
   String _status = 'GPS Disabled';
 
+  // Retry logic variables
+  int _retryAttempts = 0;
+  static const int _maxRetryAttempts = 5;
+  Timer? _retryTimer;
+
   // Trip calculation variables
   double _totalDistance = 0.0;
   double _currentSpeed = 0.0;
   double _maxSpeed = 0.0;
-  List<double> _recentSpeeds = [];
+  final List<double> _recentSpeeds = [];
   static const int _speedHistorySize = 10; // Keep last 10 speed readings for averaging
 
   // Trip average calculation (excluding very slow speeds)
@@ -51,6 +56,17 @@ class GpsService extends ChangeNotifier {
     await _initializeFileStorage();
     await _requestLocationPermissions();
     await _loadCurrentTrip();
+
+    // Auto-start GPS tracking if permissions are available
+    if (_hasLocationPermission) {
+      // Wait a bit for initialization to complete
+      Future.delayed(const Duration(seconds: 1), () {
+        if (!_isTracking) {
+          debugPrint('Auto-starting GPS tracking...');
+          _startTrackingWithRetry();
+        }
+      });
+    }
   }
 
   Future<void> _initializeFileStorage() async {
@@ -364,6 +380,70 @@ class GpsService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _startTrackingWithRetry() async {
+    // Only attempt if not already tracking and have permissions
+    if (_isTracking || !_hasLocationPermission) return;
+
+    debugPrint('GPS tracking attempt ${_retryAttempts + 1}/${_maxRetryAttempts + 1}');
+
+    try {
+      await startTracking();
+
+      // Check if tracking actually started successfully
+      if (_isTracking) {
+        // Success! Reset retry counter
+        _retryAttempts = 0;
+        _retryTimer?.cancel();
+        debugPrint('GPS tracking started successfully');
+      } else {
+        // Start tracking didn't work, retry
+        _handleGpsRetry('GPS tracking failed to start');
+      }
+    } catch (e) {
+      // Exception occurred, retry
+      _handleGpsRetry('GPS tracking error: $e');
+    }
+  }
+
+  void _handleGpsRetry(String errorMessage) {
+    if (_retryAttempts < _maxRetryAttempts) {
+      _retryAttempts++;
+
+      // Calculate exponential backoff delay: 2^attempt seconds (2, 4, 8, 16, 32)
+      final delaySeconds = (2 << (_retryAttempts - 1)).clamp(2, 60); // Cap at 60 seconds
+
+      debugPrint('$errorMessage, retrying in $delaySeconds seconds... (attempt $_retryAttempts/$_maxRetryAttempts)');
+      _setStatus('GPS retry in ${delaySeconds}s...');
+
+      _retryTimer?.cancel();
+      _retryTimer = Timer(Duration(seconds: delaySeconds), () {
+        if (!_isTracking && _hasLocationPermission) {
+          _startTrackingWithRetry();
+        }
+      });
+    } else {
+      // Max retries exceeded
+      debugPrint('GPS tracking failed after $_maxRetryAttempts attempts. Giving up.');
+      _setStatus('GPS failed - max retries exceeded');
+      _retryAttempts = 0; // Reset for future manual attempts
+    }
+  }
+
+  // Public method to manually retry GPS tracking (resets retry counter)
+  Future<void> retryTracking() async {
+    _retryTimer?.cancel();
+    _retryAttempts = 0;
+    if (_hasLocationPermission) {
+      await _startTrackingWithRetry();
+    } else {
+      // Try to re-request permissions first
+      await _requestLocationPermissions();
+      if (_hasLocationPermission) {
+        await _startTrackingWithRetry();
+      }
+    }
+  }
+
   void _setStatus(String status) {
     _status = status;
     notifyListeners();
@@ -371,6 +451,7 @@ class GpsService extends ChangeNotifier {
 
   @override
   void dispose() {
+    _retryTimer?.cancel();
     _positionStream?.cancel();
     super.dispose();
   }

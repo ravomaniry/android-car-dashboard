@@ -448,13 +448,21 @@ class InfoSection extends StatelessWidget {
         IconData statusIcon;
 
         if (bluetoothService.isAuthenticated) {
-          statusColor = const Color(0xFFFF5722); // Red for disconnect
-          statusText = 'DISCONNECT';
-          statusIcon = Icons.bluetooth_disabled;
+          statusColor = const Color(0xFF00FF41); // Green for connected
+          statusText = 'CONNECTED';
+          statusIcon = Icons.bluetooth_connected;
         } else if (bluetoothService.isConnecting) {
           statusColor = const Color(0xFF00D9FF); // Cyan for connecting
           statusText = 'CONNECTING';
           statusIcon = Icons.bluetooth_searching;
+        } else if (bluetoothService.status.contains('Retrying') || bluetoothService.status.contains('retry')) {
+          statusColor = const Color(0xFFFF9800); // Orange for retrying
+          statusText = 'RETRYING';
+          statusIcon = Icons.refresh;
+        } else if (bluetoothService.status.contains('failed') || bluetoothService.status.contains('exceeded')) {
+          statusColor = const Color(0xFFFF5722); // Red for failed
+          statusText = 'RETRY';
+          statusIcon = Icons.bluetooth_disabled;
         } else {
           statusColor = const Color(0xFF00D9FF); // Blue for connect
           statusText = 'CONNECT';
@@ -467,6 +475,9 @@ class InfoSection extends StatelessWidget {
               : () {
                   if (bluetoothService.isAuthenticated) {
                     bluetoothService.disconnect();
+                  } else if (bluetoothService.status.contains('failed') ||
+                      bluetoothService.status.contains('exceeded')) {
+                    bluetoothService.retryConnection();
                   } else {
                     bluetoothService.connectToDevice();
                   }
@@ -522,9 +533,17 @@ class InfoSection extends StatelessWidget {
         IconData statusIcon;
 
         if (gpsService.isTracking) {
-          statusColor = const Color(0xFF00FF41); // Green for stop tracking
-          statusText = 'STOP GPS';
+          statusColor = const Color(0xFF00FF41); // Green for tracking
+          statusText = 'TRACKING';
           statusIcon = Icons.gps_fixed;
+        } else if (gpsService.status.contains('retry') || gpsService.status.contains('Retrying')) {
+          statusColor = const Color(0xFFFF9800); // Orange for retrying
+          statusText = 'RETRYING';
+          statusIcon = Icons.refresh;
+        } else if (gpsService.status.contains('failed') || gpsService.status.contains('exceeded')) {
+          statusColor = const Color(0xFFFF5722); // Red for failed
+          statusText = 'RETRY';
+          statusIcon = Icons.gps_off;
         } else if (gpsService.hasLocationPermission) {
           statusColor = const Color(0xFF00D9FF); // Cyan for start tracking
           statusText = 'START GPS';
@@ -540,11 +559,16 @@ class InfoSection extends StatelessWidget {
               ? () {
                   if (gpsService.isTracking) {
                     gpsService.stopTracking();
+                  } else if (gpsService.status.contains('failed') || gpsService.status.contains('exceeded')) {
+                    gpsService.retryTracking();
                   } else {
                     gpsService.startTracking();
                   }
                 }
-              : null,
+              : () {
+                  // Try to request permissions again
+                  gpsService.retryTracking();
+                },
           child: Container(
             height: 60,
             padding: const EdgeInsets.all(6),
@@ -596,9 +620,17 @@ class InfoSection extends StatelessWidget {
         IconData statusIcon;
 
         if (gpsService.isTracking) {
-          statusColor = const Color(0xFF00FF41); // Green for stop tracking
-          statusText = 'STOP GPS';
+          statusColor = const Color(0xFF00FF41); // Green for tracking
+          statusText = 'TRACKING';
           statusIcon = Icons.gps_fixed;
+        } else if (gpsService.status.contains('retry') || gpsService.status.contains('Retrying')) {
+          statusColor = const Color(0xFFFF9800); // Orange for retrying
+          statusText = 'RETRYING';
+          statusIcon = Icons.refresh;
+        } else if (gpsService.status.contains('failed') || gpsService.status.contains('exceeded')) {
+          statusColor = const Color(0xFFFF5722); // Red for failed
+          statusText = 'RETRY';
+          statusIcon = Icons.gps_off;
         } else if (gpsService.hasLocationPermission) {
           statusColor = const Color(0xFF00D9FF); // Cyan for start tracking
           statusText = 'START GPS';

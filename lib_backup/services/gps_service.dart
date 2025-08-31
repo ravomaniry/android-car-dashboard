@@ -27,7 +27,7 @@ class GpsService extends ChangeNotifier {
   double _totalDistance = 0.0;
   double _currentSpeed = 0.0;
   double _maxSpeed = 0.0;
-  List<double> _recentSpeeds = [];
+  final List<double> _recentSpeeds = [];
   static const int _speedHistorySize = 10; // Keep last 10 speed readings for averaging
 
   // Trip average calculation (excluding very slow speeds)
@@ -130,9 +130,7 @@ class GpsService extends ChangeNotifier {
         timeLimit: Duration(seconds: 5), // Timeout after 5 seconds
       );
 
-      _positionStream = Geolocator.getPositionStream(
-        locationSettings: locationSettings,
-      ).listen(
+      _positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
         _onLocationUpdate,
         onError: (error) {
           debugPrint('GPS error: $error');
@@ -179,7 +177,8 @@ class GpsService extends ChangeNotifier {
 
     // Calculate distance if we have a previous position
     if (_lastPosition != null && _lastUpdateTime != null) {
-      double distance = Geolocator.distanceBetween(
+      double distance =
+          Geolocator.distanceBetween(
             _lastPosition!.latitude,
             _lastPosition!.longitude,
             position.latitude,
@@ -237,10 +236,7 @@ class GpsService extends ChangeNotifier {
   }
 
   Future<void> _startNewTrip() async {
-    _currentTrip = TripData(
-      startTime: DateTime.now(),
-      isActive: true,
-    );
+    _currentTrip = TripData(startTime: DateTime.now(), isActive: true);
 
     // Reset trip variables
     _totalDistance = 0.0;
@@ -289,10 +285,7 @@ class GpsService extends ChangeNotifier {
   Future<void> _endCurrentTrip() async {
     if (_currentTrip == null || !_currentTrip!.isActive) return;
 
-    _currentTrip = _currentTrip!.copyWith(
-      endTime: DateTime.now(),
-      isActive: false,
-    );
+    _currentTrip = _currentTrip!.copyWith(endTime: DateTime.now(), isActive: false);
 
     await _saveCurrentTrip();
     debugPrint('Trip ended: ${_currentTrip!.endTime}');

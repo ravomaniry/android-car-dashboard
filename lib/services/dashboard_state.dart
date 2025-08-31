@@ -17,7 +17,7 @@ class DashboardState extends ChangeNotifier {
   DateTime? _lastFuelUpdate;
 
   // Temperature averaging variables
-  List<double> _temperatureHistory = [];
+  final List<double> _temperatureHistory = [];
   static const int _tempHistorySize = 50; // Keep last 50 temperature readings
 
   // Demo mode timers
@@ -170,7 +170,7 @@ class DashboardState extends ChangeNotifier {
   }
 
   // Small screen state management
-  Set<String> _sectionsRequestingSmallScreen = {};
+  final Set<String> _sectionsRequestingSmallScreen = {};
 
   void requestSmallScreenMode(String sectionName) {
     _sectionsRequestingSmallScreen.add(sectionName);

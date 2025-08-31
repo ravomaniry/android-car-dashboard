@@ -23,7 +23,7 @@ class WarningSection extends StatelessWidget {
       builder: (context, dashboardState, child) {
         return LayoutBuilder(
           builder: (context, constraints) {
-            final isSmallScreen = dashboardState!.isSmallScreen;
+            final isSmallScreen = dashboardState.isSmallScreen;
 
             // Check if this section needs small screen mode
             final needsSmallScreen = _checkIfNeedsSmallScreen(constraints);

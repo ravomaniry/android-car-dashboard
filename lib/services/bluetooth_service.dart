@@ -2,14 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
-import 'package:crypto/crypto.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/dashboard_data.dart';
 import 'dashboard_state.dart';
 
 class BluetoothService extends ChangeNotifier {
   static const String targetDeviceName = 'RAVO_CAR_DASH';
-  static const String secretSalt = 'super_secret_salt';
 
   BluetoothConnection? _connection;
   bool _isConnecting = false;
@@ -18,13 +16,21 @@ class BluetoothService extends ChangeNotifier {
 
   final DashboardState _dashboardState;
 
+  // Retry logic variables
+  int _retryAttempts = 0;
+  static const int _maxRetryAttempts = 5;
+  Timer? _retryTimer;
+
   // Getters
   bool get isConnected => _connection?.isConnected ?? false;
   bool get isConnecting => _isConnecting;
   bool get isAuthenticated => _isAuthenticated;
   String get status => _status;
 
-  BluetoothService(this._dashboardState);
+  BluetoothService(this._dashboardState) {
+    // Auto-connect on service initialization
+    _autoConnect();
+  }
 
   Future<bool> requestPermissions() async {
     if (defaultTargetPlatform == TargetPlatform.android) {
@@ -80,78 +86,20 @@ class BluetoothService extends ChangeNotifier {
       BluetoothConnection connection = await BluetoothConnection.toAddress(targetDevice.address);
       _connection = connection;
 
-      _setStatus('Connected. Authenticating...');
+      _setStatus('Connected. Ready for data...');
 
-      // Start authentication process
-      bool authenticated = await _authenticateWithDevice();
+      // Skip authentication since it's disabled on the device
+      _isAuthenticated = true;
+      _dashboardState.setConnectionStatus('Connected', connected: true);
+      _setStatus('Ready');
 
-      if (authenticated) {
-        _isAuthenticated = true;
-        _dashboardState.setConnectionStatus('Connected & Authenticated', connected: true);
-        _setStatus('Ready');
-
-        // Start listening for data
-        _listenForData();
-      } else {
-        _setStatus('Authentication failed');
-        await _disconnect();
-      }
+      // Start listening for data immediately
+      _listenForData();
     } catch (e) {
       _setStatus('Connection failed: ${e.toString()}');
     } finally {
       _isConnecting = false;
     }
-  }
-
-  Future<bool> _authenticateWithDevice() async {
-    if (_connection == null) return false;
-
-    try {
-      // Set up a completer to handle the async authentication
-      Completer<bool> authCompleter = Completer<bool>();
-
-      // Listen for the challenge from ESP32
-      _connection!.input!.listen((Uint8List data) {
-        String received = String.fromCharCodes(data).trim();
-
-        if (received.startsWith('CHALLENGE:')) {
-          String challenge = received.substring(10); // Remove "CHALLENGE:" prefix
-
-          // Compute the hash response
-          String response = _computeAuthResponse(challenge);
-
-          // Send the response
-          _connection!.output.add(Uint8List.fromList(utf8.encode('$response\n')));
-        } else if (received == 'AUTH OK') {
-          if (!authCompleter.isCompleted) {
-            authCompleter.complete(true);
-          }
-        } else if (received == 'AUTH FAIL') {
-          if (!authCompleter.isCompleted) {
-            authCompleter.complete(false);
-          }
-        }
-      });
-
-      // Wait for authentication result with timeout
-      return await authCompleter.future.timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          return false;
-        },
-      );
-    } catch (e) {
-      debugPrint('Authentication error: $e');
-      return false;
-    }
-  }
-
-  String _computeAuthResponse(String challenge) {
-    // Compute SHA256 hash of challenge + salt (same as ESP32)
-    final input = challenge + secretSalt;
-    final bytes = utf8.encode(input);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
   }
 
   void _listenForData() {
@@ -174,8 +122,14 @@ class BluetoothService extends ChangeNotifier {
   void _parseIncomingData(String data) {
     // Parse JSON data from ESP32
     // Expected format: {"coolantTemp":82.0,"fuelLevel":65.0,"oilWarning":false,...}
+
+    // Skip empty or whitespace-only data
+    if (data.trim().isEmpty) {
+      return;
+    }
+
     try {
-      final Map<String, dynamic> json = jsonDecode(data);
+      final Map<String, dynamic> json = jsonDecode(data.trim());
 
       final esp32SensorData = Esp32SensorData(
         coolantTemp: (json['coolantTemp'] ?? 0.0).toDouble(),
@@ -190,9 +144,15 @@ class BluetoothService extends ChangeNotifier {
         hazardLights: json['hazardLights'] ?? false,
       );
 
+      debugPrint(
+        'Successfully parsed sensor data: coolant=${esp32SensorData.coolantTemp}°C, fuel=${esp32SensorData.fuelLevel}%, battery=${esp32SensorData.batteryVoltage}V',
+      );
       _dashboardState.updateEsp32SensorData(esp32SensorData);
     } catch (e) {
-      debugPrint('Failed to parse incoming data: $data, Error: $e');
+      // Only log parsing errors for non-empty data that looks like JSON
+      if (data.trim().isNotEmpty && (data.contains('{') || data.contains('}'))) {
+        debugPrint('Failed to parse incoming data: "$data", Error: $e');
+      }
     }
   }
 
@@ -218,8 +178,61 @@ class BluetoothService extends ChangeNotifier {
     await _disconnect();
   }
 
+  Future<void> _autoConnect() async {
+    // Wait a bit for the app to initialize
+    await Future.delayed(const Duration(seconds: 2));
+
+    // Start retry logic with exponential backoff
+    await _connectWithRetry();
+  }
+
+  Future<void> _connectWithRetry() async {
+    // Only auto-connect if not already connected/connecting
+    if (_isConnecting || isConnected) return;
+
+    debugPrint('Bluetooth connection attempt ${_retryAttempts + 1}/${_maxRetryAttempts + 1}');
+    await connectToDevice();
+
+    // If connection failed and we haven't exceeded max attempts
+    if (!isConnected && !_isAuthenticated && _retryAttempts < _maxRetryAttempts) {
+      _retryAttempts++;
+
+      // Calculate exponential backoff delay: 2^attempt seconds (2, 4, 8, 16, 32)
+      final delaySeconds = (2 << (_retryAttempts - 1)).clamp(2, 60); // Cap at 60 seconds
+
+      debugPrint(
+        'Bluetooth connection failed, retrying in $delaySeconds seconds... (attempt $_retryAttempts/$_maxRetryAttempts)',
+      );
+      _setStatus('Retrying in ${delaySeconds}s...');
+
+      _retryTimer?.cancel();
+      _retryTimer = Timer(Duration(seconds: delaySeconds), () {
+        if (!_isConnecting && !isConnected) {
+          _connectWithRetry();
+        }
+      });
+    } else if (!isConnected && !_isAuthenticated) {
+      // Max retries exceeded
+      debugPrint('Bluetooth connection failed after $_maxRetryAttempts attempts. Giving up.');
+      _setStatus('Connection failed - max retries exceeded');
+      _retryAttempts = 0; // Reset for future manual attempts
+    } else if (isConnected && _isAuthenticated) {
+      // Success! Reset retry counter
+      _retryAttempts = 0;
+      _retryTimer?.cancel();
+    }
+  }
+
+  // Public method to manually retry connection (resets retry counter)
+  Future<void> retryConnection() async {
+    _retryTimer?.cancel();
+    _retryAttempts = 0;
+    await _connectWithRetry();
+  }
+
   @override
   void dispose() {
+    _retryTimer?.cancel();
     _disconnect();
     super.dispose();
   }
