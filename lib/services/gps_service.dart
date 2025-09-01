@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/trip_data.dart';
 import 'dashboard_state.dart';
+import 'event_manager.dart';
 
 class GpsService extends ChangeNotifier {
   final DashboardState _dashboardState;
@@ -130,6 +131,7 @@ class GpsService extends ChangeNotifier {
 
     try {
       _setStatus('Starting GPS...');
+      EventManager().addGpsEvent('Starting GPS tracking...', 'INFO');
 
       // Start new trip if none exists
       if (_currentTrip == null || !_currentTrip!.isActive) {
@@ -140,19 +142,24 @@ class GpsService extends ChangeNotifier {
       const LocationSettings locationSettings = LocationSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 1, // Update every 1 meter
-        timeLimit: Duration(seconds: 5), // Timeout after 5 seconds
+        timeLimit: Duration(seconds: 30), // Timeout after 30 seconds - more reasonable for GPS acquisition
       );
 
       _positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
         _onLocationUpdate,
         onError: (error) {
           debugPrint('GPS error: $error');
-          _setStatus('GPS Error: $error');
+          if (error.toString().contains('TimeoutException')) {
+            _setStatus('GPS: Acquiring signal... (timeout extended)');
+          } else {
+            _setStatus('GPS Error: $error');
+          }
         },
       );
 
       _isTracking = true;
       _setStatus('GPS Tracking Active');
+      EventManager().addGpsEvent('GPS tracking started successfully', 'STATUS');
       notifyListeners();
     } catch (e) {
       _setStatus('Failed to start GPS: $e');
@@ -166,6 +173,7 @@ class GpsService extends ChangeNotifier {
     await _positionStream?.cancel();
     _positionStream = null;
     _isTracking = false;
+    EventManager().addGpsEvent('GPS tracking stopped', 'STATUS');
 
     // End current trip
     if (_currentTrip != null && _currentTrip!.isActive) {
@@ -179,8 +187,48 @@ class GpsService extends ChangeNotifier {
   void _onLocationUpdate(Position position) {
     final now = DateTime.now();
 
-    // Calculate speed (m/s to km/h)
-    _currentSpeed = (position.speed * 3.6).clamp(0.0, 300.0); // Cap at 300 km/h
+    // Calculate speed (m/s to km/h) - handle cases where speed might be null or negative
+    double speedFromGPS = position.speed;
+    if (speedFromGPS.isNaN || speedFromGPS < 0) {
+      speedFromGPS = 0.0;
+    }
+
+    // If GPS speed is not available, calculate from position changes
+    if (speedFromGPS == 0.0 && _lastPosition != null && _lastUpdateTime != null) {
+      final timeDiff = now.difference(_lastUpdateTime!).inMilliseconds / 1000.0; // seconds
+      if (timeDiff > 0) {
+        final distance = Geolocator.distanceBetween(
+          _lastPosition!.latitude,
+          _lastPosition!.longitude,
+          position.latitude,
+          position.longitude,
+        );
+        speedFromGPS = (distance / timeDiff) * 3.6; // Convert m/s to km/h
+      }
+    }
+
+    _currentSpeed = speedFromGPS.clamp(0.0, 300.0); // Cap at 300 km/h
+
+    // Debug logging
+    debugPrint('GPS Update - Lat: ${position.latitude}, Lon: ${position.longitude}');
+    debugPrint('GPS Update - Speed from GPS: ${position.speed}, Calculated: $_currentSpeed km/h');
+    debugPrint('GPS Update - Accuracy: ${position.accuracy}m, Altitude: ${position.altitude}m');
+
+    // Add GPS data events to the event stream
+    _addGpsEvent(
+      'Location update: ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}',
+      'DATA',
+    );
+    _addGpsEvent('Speed update: ${_currentSpeed.toStringAsFixed(1)} km/h', 'DATA');
+
+    // Add accuracy event if accuracy is good
+    if (position.accuracy <= 10) {
+      _addGpsEvent('GPS accuracy: High (${position.accuracy.toStringAsFixed(1)}m)', 'STATUS');
+    } else if (position.accuracy <= 50) {
+      _addGpsEvent('GPS accuracy: Medium (${position.accuracy.toStringAsFixed(1)}m)', 'STATUS');
+    } else {
+      _addGpsEvent('GPS accuracy: Low (${position.accuracy.toStringAsFixed(1)}m)', 'WARNING');
+    }
 
     // Update speed history for averaging
     _recentSpeeds.add(_currentSpeed);
@@ -447,6 +495,35 @@ class GpsService extends ChangeNotifier {
   void _setStatus(String status) {
     _status = status;
     notifyListeners();
+  }
+
+  // Method to add GPS events to the event stream
+  void _addGpsEvent(String message, String level) {
+    EventManager().addGpsEvent(message, level);
+  }
+
+  // Debug method to get current location
+  Future<Position?> getCurrentLocation() async {
+    try {
+      if (!_hasLocationPermission) {
+        bool permissionGranted = await _requestLocationPermissions();
+        if (!permissionGranted) return null;
+      }
+
+      debugPrint('Getting current location...');
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best,
+        timeLimit: const Duration(seconds: 30), // Increased timeout for better GPS acquisition
+      );
+
+      debugPrint('Current location: Lat: ${position.latitude}, Lon: ${position.longitude}');
+      debugPrint('Current location: Speed: ${position.speed}, Accuracy: ${position.accuracy}m');
+
+      return position;
+    } catch (e) {
+      debugPrint('Error getting current location: $e');
+      return null;
+    }
   }
 
   @override

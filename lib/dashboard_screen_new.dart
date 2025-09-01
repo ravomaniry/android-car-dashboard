@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/dashboard_state.dart';
-import 'services/bluetooth_service.dart';
 import 'widgets/warning_section.dart';
 import 'widgets/speedometer_widget.dart';
 import 'widgets/trip_detail_item.dart';
@@ -143,7 +142,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             blinkAnimation: _blinkAnimation,
                           ),
                         ),
-                        const SizedBox(height: 16),
+
                         // Fuel Level
                         Expanded(child: FuelGauge(fuelLevel: data.fuelLevel)),
                       ],
@@ -154,79 +153,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
             );
           },
         ),
-      ),
-      floatingActionButton: Consumer2<DashboardState, BluetoothService>(
-        builder: (context, dashboardState, bluetoothService, child) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Connection Status Indicator
-              if (!dashboardState.demoMode)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A1A),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: bluetoothService.isAuthenticated ? const Color(0xFF00FF41) : const Color(0xFFFF5722),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    bluetoothService.status,
-                    style: const TextStyle(color: Colors.white, fontSize: 10, fontFamily: 'FiraCode'),
-                  ),
-                ),
-              const SizedBox(height: 8),
-
-              // Bluetooth Connect/Disconnect Button
-              if (!dashboardState.demoMode && !bluetoothService.isAuthenticated)
-                FloatingActionButton(
-                  heroTag: "bluetooth",
-                  mini: true,
-                  onPressed: bluetoothService.isConnecting ? null : () => bluetoothService.connectToDevice(),
-                  backgroundColor: const Color(0xFF1A1A1A),
-                  child: bluetoothService.isConnecting
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00D9FF)),
-                          ),
-                        )
-                      : const Icon(Icons.bluetooth, color: Color(0xFF00D9FF), size: 20),
-                ),
-
-              if (!dashboardState.demoMode && bluetoothService.isAuthenticated)
-                FloatingActionButton(
-                  heroTag: "disconnect",
-                  mini: true,
-                  onPressed: () => bluetoothService.disconnect(),
-                  backgroundColor: const Color(0xFFFF5722),
-                  child: const Icon(Icons.bluetooth_disabled, color: Colors.white, size: 20),
-                ),
-
-              const SizedBox(height: 8),
-
-              // Demo Mode Toggle
-              FloatingActionButton.extended(
-                heroTag: "demo",
-                onPressed: () => dashboardState.toggleDemoMode(),
-                backgroundColor: dashboardState.demoMode ? const Color(0xFFFF5722) : const Color(0xFF1A1A1A),
-                icon: Icon(
-                  dashboardState.demoMode ? Icons.stop : Icons.play_arrow,
-                  color: dashboardState.demoMode ? Colors.white : const Color(0xFF00FF41),
-                ),
-                label: Text(
-                  dashboardState.demoMode ? 'STOP DEMO' : 'START DEMO',
-                  style: const TextStyle(color: Colors.white, fontFamily: 'FiraCode', fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          );
-        },
       ),
     );
   }

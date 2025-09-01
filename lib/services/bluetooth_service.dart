@@ -5,6 +5,7 @@ import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/dashboard_data.dart';
 import 'dashboard_state.dart';
+import 'event_manager.dart';
 
 class BluetoothService extends ChangeNotifier {
   static const String targetDeviceName = 'RAVO_CAR_DASH';
@@ -59,12 +60,16 @@ class BluetoothService extends ChangeNotifier {
       return;
     }
 
+    EventManager().addBluetoothEvent('Requesting Bluetooth permissions...', 'INFO');
+
     _isConnecting = true;
     _setStatus('Scanning for devices...');
+    EventManager().addBluetoothEvent('Scanning for Bluetooth devices...', 'INFO');
 
     try {
       // Get list of bonded devices
       List<BluetoothDevice> bondedDevices = await FlutterBluetoothSerial.instance.getBondedDevices();
+      EventManager().addBluetoothEvent('Found ${bondedDevices.length} bonded devices', 'INFO');
 
       BluetoothDevice? targetDevice;
       for (BluetoothDevice device in bondedDevices) {
@@ -76,25 +81,30 @@ class BluetoothService extends ChangeNotifier {
 
       if (targetDevice == null) {
         _setStatus('Device not found. Please pair $targetDeviceName first.');
+        EventManager().addBluetoothEvent('Target device $targetDeviceName not found', 'ERROR');
         _isConnecting = false;
         return;
       }
 
       _setStatus('Connecting to ${targetDevice.name}...');
+      EventManager().addBluetoothEvent('Connecting to ${targetDevice.name}...', 'INFO');
 
       // Connect to the device
       BluetoothConnection connection = await BluetoothConnection.toAddress(targetDevice.address);
       _connection = connection;
 
       _setStatus('Connected. Ready for data...');
+      EventManager().addBluetoothEvent('Bluetooth connection established', 'STATUS');
 
       // Skip authentication since it's disabled on the device
       _isAuthenticated = true;
       _dashboardState.setConnectionStatus('Connected', connected: true);
       _setStatus('Ready');
+      EventManager().addBluetoothEvent('Bluetooth authentication successful', 'STATUS');
 
       // Start listening for data immediately
       _listenForData();
+      EventManager().addBluetoothEvent('Started listening for data...', 'INFO');
     } catch (e) {
       _setStatus('Connection failed: ${e.toString()}');
     } finally {
@@ -148,6 +158,11 @@ class BluetoothService extends ChangeNotifier {
         'Successfully parsed sensor data: coolant=${esp32SensorData.coolantTemp}°C, fuel=${esp32SensorData.fuelLevel}%, battery=${esp32SensorData.batteryVoltage}V',
       );
       _dashboardState.updateEsp32SensorData(esp32SensorData);
+
+      // Add Bluetooth data events to the event stream
+      _addBluetoothEvent('Received coolant temp: ${esp32SensorData.coolantTemp.toStringAsFixed(1)}°C', 'DATA');
+      _addBluetoothEvent('Received fuel level: ${esp32SensorData.fuelLevel.toStringAsFixed(1)}%', 'DATA');
+      _addBluetoothEvent('Received battery voltage: ${esp32SensorData.batteryVoltage.toStringAsFixed(1)}V', 'DATA');
     } catch (e) {
       // Only log parsing errors for non-empty data that looks like JSON
       if (data.trim().isNotEmpty && (data.contains('{') || data.contains('}'))) {
@@ -172,6 +187,11 @@ class BluetoothService extends ChangeNotifier {
   void _setStatus(String status) {
     _status = status;
     notifyListeners();
+  }
+
+  // Method to add Bluetooth events to the event stream
+  void _addBluetoothEvent(String message, String level) {
+    EventManager().addBluetoothEvent(message, level);
   }
 
   Future<void> disconnect() async {

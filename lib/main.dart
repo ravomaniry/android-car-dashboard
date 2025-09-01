@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'dashboard_screen.dart';
+import 'dashboard_screen_new.dart';
 import 'services/dashboard_state.dart';
 import 'services/bluetooth_service.dart';
 import 'services/gps_service.dart';
+import 'services/event_manager.dart';
 
 void main() {
   runApp(const CarDashboardApp());
@@ -18,16 +19,13 @@ class CarDashboardApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => DashboardState()),
+        ChangeNotifierProvider(create: (context) => EventManager()),
         ChangeNotifierProxyProvider<DashboardState, BluetoothService>(
-          create: (context) => BluetoothService(
-            Provider.of<DashboardState>(context, listen: false),
-          ),
+          create: (context) => BluetoothService(Provider.of<DashboardState>(context, listen: false)),
           update: (context, dashboardState, bluetoothService) => bluetoothService ?? BluetoothService(dashboardState),
         ),
         ChangeNotifierProxyProvider<DashboardState, GpsService>(
-          create: (context) => GpsService(
-            Provider.of<DashboardState>(context, listen: false),
-          ),
+          create: (context) => GpsService(Provider.of<DashboardState>(context, listen: false)),
           update: (context, dashboardState, gpsService) => gpsService ?? GpsService(dashboardState),
         ),
       ],
@@ -59,10 +57,7 @@ class _FullscreenDashboardState extends State<FullscreenDashboard> {
     // Hide system UI for fullscreen experience
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     // Lock orientation to landscape
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
   }
 
   @override
