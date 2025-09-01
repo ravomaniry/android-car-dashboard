@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../services/bluetooth_service.dart';
-import '../services/gps_service.dart';
+
 import '../services/dashboard_state.dart';
 
 class InfoSection extends StatelessWidget {
@@ -55,7 +54,11 @@ class InfoSection extends StatelessWidget {
                 border: Border.all(color: const Color(0xFF00FF41), width: 1),
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
-                  BoxShadow(color: const Color(0xFF00FF41).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2)),
+                  BoxShadow(
+                    color: const Color(0xFF00FF41).withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
                 ],
               ),
               child: Column(
@@ -101,176 +104,127 @@ class InfoSection extends StatelessWidget {
   }
 
   Widget _buildNormalLayout() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        border: Border.all(color: const Color(0xFF00FF41), width: 1),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(color: const Color(0xFF00FF41).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Lighting section
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.info_outline, color: const Color(0xFF00FF41), size: 16),
-              const SizedBox(width: 8),
               Text(
-                'VEHICLE STATUS',
-                style: GoogleFonts.firaCode(color: const Color(0xFF00FF41), fontSize: 12, fontWeight: FontWeight.bold),
+                'LIGHTING SYSTEMS',
+                style: GoogleFonts.firaCode(color: const Color(0xFF888888), fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+
+              // Light indicators in a row
+              Row(
+                children: [
+                  Expanded(child: _buildLightIndicator('DRL', 'Daytime Running Lights', Icons.wb_sunny, drlOn, false)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildLightIndicator(
+                      'LOW',
+                      'Low Beam Headlights',
+                      Icons.lightbulb_outline,
+                      lowBeamOn,
+                      false,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildLightIndicator('HIGH', 'High Beam Headlights', Icons.highlight, highBeamOn, false),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              Text(
+                'SIGNAL INDICATORS',
+                style: GoogleFonts.firaCode(color: const Color(0xFF888888), fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+
+              // Turn signals in a row (L - HAZ - R)
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSignalIndicator(
+                      'L',
+                      'Left Turn',
+                      Icons.keyboard_arrow_left,
+                      leftTurnSignal || hazardLights,
+                      leftTurnSignal || hazardLights,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildSignalIndicator('HAZ', 'Hazard Lights', Icons.warning, hazardLights, hazardLights),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildSignalIndicator(
+                      'R',
+                      'Right Turn',
+                      Icons.keyboard_arrow_right,
+                      rightTurnSignal || hazardLights,
+                      rightTurnSignal || hazardLights,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 16),
-
-          // Lighting section
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'LIGHTING SYSTEMS',
-                  style: GoogleFonts.firaCode(
-                    color: const Color(0xFF888888),
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Light indicators in a row
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildLightIndicator('DRL', 'Daytime Running Lights', Icons.wb_sunny, drlOn, false),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildLightIndicator(
-                        'LOW',
-                        'Low Beam Headlights',
-                        Icons.lightbulb_outline,
-                        lowBeamOn,
-                        false,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildLightIndicator('HIGH', 'High Beam Headlights', Icons.highlight, highBeamOn, false),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                Text(
-                  'SIGNAL INDICATORS',
-                  style: GoogleFonts.firaCode(
-                    color: const Color(0xFF888888),
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Turn signals in a row (L - HAZ - R)
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildSignalIndicator(
-                        'L',
-                        'Left Turn',
-                        Icons.keyboard_arrow_left,
-                        leftTurnSignal || hazardLights,
-                        leftTurnSignal || hazardLights,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildSignalIndicator('HAZ', 'Hazard Lights', Icons.warning, hazardLights, hazardLights),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildSignalIndicator(
-                        'R',
-                        'Right Turn',
-                        Icons.keyboard_arrow_right,
-                        rightTurnSignal || hazardLights,
-                        rightTurnSignal || hazardLights,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildSmallScreenLayout() {
-    return Container(
-      padding: const EdgeInsets.all(8), // Reduced padding for small screen
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        border: Border.all(color: const Color(0xFF00FF41), width: 1),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(color: const Color(0xFF00FF41).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Compact lighting section - no titles, just indicators
-          Expanded(
-            child: Column(
-              children: [
-                // Light indicators in a row - compact
-                Row(
-                  children: [
-                    Expanded(child: _buildCompactLightIndicator('DRL', Icons.wb_sunny, drlOn)),
-                    const SizedBox(width: 4),
-                    Expanded(child: _buildCompactLightIndicator('LOW', Icons.lightbulb_outline, lowBeamOn)),
-                    const SizedBox(width: 4),
-                    Expanded(child: _buildCompactLightIndicator('HIGH', Icons.highlight, highBeamOn)),
-                  ],
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Compact lighting section - no titles, just indicators
+        Expanded(
+          child: Column(
+            children: [
+              // Light indicators in a row - compact
+              Row(
+                children: [
+                  Expanded(child: _buildCompactLightIndicator('DRL', Icons.wb_sunny, drlOn)),
+                  const SizedBox(width: 4),
+                  Expanded(child: _buildCompactLightIndicator('LOW', Icons.lightbulb_outline, lowBeamOn)),
+                  const SizedBox(width: 4),
+                  Expanded(child: _buildCompactLightIndicator('HIGH', Icons.highlight, highBeamOn)),
+                ],
+              ),
 
-                const SizedBox(height: 8),
+              const SizedBox(height: 8),
 
-                // Turn signals in a row - compact
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildCompactSignalIndicator(
-                        'L',
-                        Icons.keyboard_arrow_left,
-                        leftTurnSignal || hazardLights,
-                      ),
+              // Turn signals in a row - compact
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildCompactSignalIndicator('L', Icons.keyboard_arrow_left, leftTurnSignal || hazardLights),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(child: _buildCompactSignalIndicator('HAZ', Icons.warning, hazardLights)),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: _buildCompactSignalIndicator(
+                      'R',
+                      Icons.keyboard_arrow_right,
+                      rightTurnSignal || hazardLights,
                     ),
-                    const SizedBox(width: 4),
-                    Expanded(child: _buildCompactSignalIndicator('HAZ', Icons.warning, hazardLights)),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: _buildCompactSignalIndicator(
-                        'R',
-                        Icons.keyboard_arrow_right,
-                        rightTurnSignal || hazardLights,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -293,7 +247,7 @@ class InfoSection extends StatelessWidget {
               final color = isOn
                   ? (shouldBlink
                         ? Color.lerp(
-                            const Color(0xFF00FF41).withOpacity(0.3),
+                            const Color(0xFF00FF41).withValues(alpha: 0.3),
                             const Color(0xFF00FF41),
                             blinkAnimation.value,
                           )
@@ -383,7 +337,7 @@ class InfoSection extends StatelessWidget {
             builder: (context, child) {
               final color = isOn
                   ? (shouldBlink
-                        ? Color.lerp(Colors.orange.withOpacity(0.3), Colors.orange, blinkAnimation.value)
+                        ? Color.lerp(Colors.orange.withValues(alpha: 0.3), Colors.orange, blinkAnimation.value)
                         : Colors.orange)
                   : const Color(0xFF333333);
 
@@ -437,260 +391,6 @@ class InfoSection extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildBluetoothStatus() {
-    return Consumer<BluetoothService>(
-      builder: (context, bluetoothService, child) {
-        Color statusColor;
-        String statusText;
-        IconData statusIcon;
-
-        if (bluetoothService.isAuthenticated) {
-          statusColor = const Color(0xFF00FF41); // Green for connected
-          statusText = 'CONNECTED';
-          statusIcon = Icons.bluetooth_connected;
-        } else if (bluetoothService.isConnecting) {
-          statusColor = const Color(0xFF00D9FF); // Cyan for connecting
-          statusText = 'CONNECTING';
-          statusIcon = Icons.bluetooth_searching;
-        } else if (bluetoothService.status.contains('Retrying') || bluetoothService.status.contains('retry')) {
-          statusColor = const Color(0xFFFF9800); // Orange for retrying
-          statusText = 'RETRYING';
-          statusIcon = Icons.refresh;
-        } else if (bluetoothService.status.contains('failed') || bluetoothService.status.contains('exceeded')) {
-          statusColor = const Color(0xFFFF5722); // Red for failed
-          statusText = 'RETRY';
-          statusIcon = Icons.bluetooth_disabled;
-        } else {
-          statusColor = const Color(0xFF00D9FF); // Blue for connect
-          statusText = 'CONNECT';
-          statusIcon = Icons.bluetooth;
-        }
-
-        return GestureDetector(
-          onTap: bluetoothService.isConnecting
-              ? null
-              : () {
-                  if (bluetoothService.isAuthenticated) {
-                    bluetoothService.disconnect();
-                  } else if (bluetoothService.status.contains('failed') ||
-                      bluetoothService.status.contains('exceeded')) {
-                    bluetoothService.retryConnection();
-                  } else {
-                    bluetoothService.connectToDevice();
-                  }
-                },
-          child: Container(
-            height: 60,
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A1A1A),
-              border: Border.all(color: statusColor, width: 1),
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [BoxShadow(color: statusColor.withOpacity(0.1), blurRadius: 8)],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(statusIcon, color: statusColor, size: 18),
-                const SizedBox(height: 2),
-                Flexible(
-                  child: Text(
-                    'BLUETOOTH',
-                    style: GoogleFonts.firaCode(
-                      color: const Color(0xFF888888),
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Flexible(
-                  child: Text(
-                    statusText,
-                    style: GoogleFonts.firaCode(color: statusColor, fontSize: 8, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildGpsStatus() {
-    return Consumer<GpsService>(
-      builder: (context, gpsService, child) {
-        Color statusColor;
-        String statusText;
-        IconData statusIcon;
-
-        if (gpsService.isTracking) {
-          statusColor = const Color(0xFF00FF41); // Green for tracking
-          statusText = 'TRACKING';
-          statusIcon = Icons.gps_fixed;
-        } else if (gpsService.status.contains('retry') || gpsService.status.contains('Retrying')) {
-          statusColor = const Color(0xFFFF9800); // Orange for retrying
-          statusText = 'RETRYING';
-          statusIcon = Icons.refresh;
-        } else if (gpsService.status.contains('failed') || gpsService.status.contains('exceeded')) {
-          statusColor = const Color(0xFFFF5722); // Red for failed
-          statusText = 'RETRY';
-          statusIcon = Icons.gps_off;
-        } else if (gpsService.hasLocationPermission) {
-          statusColor = const Color(0xFF00D9FF); // Cyan for start tracking
-          statusText = 'START GPS';
-          statusIcon = Icons.gps_not_fixed;
-        } else {
-          statusColor = const Color(0xFF666666); // Gray for disabled
-          statusText = 'DISABLED';
-          statusIcon = Icons.gps_off;
-        }
-
-        return GestureDetector(
-          onTap: gpsService.hasLocationPermission
-              ? () {
-                  if (gpsService.isTracking) {
-                    gpsService.stopTracking();
-                  } else if (gpsService.status.contains('failed') || gpsService.status.contains('exceeded')) {
-                    gpsService.retryTracking();
-                  } else {
-                    gpsService.startTracking();
-                  }
-                }
-              : () {
-                  // Try to request permissions again
-                  gpsService.retryTracking();
-                },
-          child: Container(
-            height: 60,
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A1A1A),
-              border: Border.all(color: statusColor, width: 1),
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [BoxShadow(color: statusColor.withOpacity(0.1), blurRadius: 8)],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(statusIcon, color: statusColor, size: 18),
-                const SizedBox(height: 2),
-                Flexible(
-                  child: Text(
-                    'GPS',
-                    style: GoogleFonts.firaCode(
-                      color: const Color(0xFF888888),
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Flexible(
-                  child: Text(
-                    statusText,
-                    style: GoogleFonts.firaCode(color: statusColor, fontSize: 8, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildCompactGpsStatus() {
-    return Consumer<GpsService>(
-      builder: (context, gpsService, child) {
-        Color statusColor;
-        String statusText;
-        IconData statusIcon;
-
-        if (gpsService.isTracking) {
-          statusColor = const Color(0xFF00FF41); // Green for tracking
-          statusText = 'TRACKING';
-          statusIcon = Icons.gps_fixed;
-        } else if (gpsService.status.contains('retry') || gpsService.status.contains('Retrying')) {
-          statusColor = const Color(0xFFFF9800); // Orange for retrying
-          statusText = 'RETRYING';
-          statusIcon = Icons.refresh;
-        } else if (gpsService.status.contains('failed') || gpsService.status.contains('exceeded')) {
-          statusColor = const Color(0xFFFF5722); // Red for failed
-          statusText = 'RETRY';
-          statusIcon = Icons.gps_off;
-        } else if (gpsService.hasLocationPermission) {
-          statusColor = const Color(0xFF00D9FF); // Cyan for start tracking
-          statusText = 'START GPS';
-          statusIcon = Icons.gps_not_fixed;
-        } else {
-          statusColor = const Color(0xFF666666); // Gray for disabled
-          statusText = 'DISABLED';
-          statusIcon = Icons.gps_off;
-        }
-
-        return GestureDetector(
-          onTap: gpsService.hasLocationPermission
-              ? () {
-                  if (gpsService.isTracking) {
-                    gpsService.stopTracking();
-                  } else {
-                    gpsService.startTracking();
-                  }
-                }
-              : null,
-          child: Container(
-            height: 40,
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A1A1A),
-              border: Border.all(color: statusColor, width: 1),
-              borderRadius: BorderRadius.circular(4),
-              boxShadow: [BoxShadow(color: statusColor.withOpacity(0.1), blurRadius: 4)],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(statusIcon, color: statusColor, size: 12),
-                const SizedBox(height: 2),
-                Flexible(
-                  child: Text(
-                    'GPS',
-                    style: GoogleFonts.firaCode(
-                      color: const Color(0xFF888888),
-                      fontSize: 6,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Flexible(
-                  child: Text(
-                    statusText,
-                    style: GoogleFonts.firaCode(color: statusColor, fontSize: 6, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }

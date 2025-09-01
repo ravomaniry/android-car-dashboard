@@ -142,7 +142,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                             blinkAnimation: _blinkAnimation,
                           ),
                         ),
-
+                        const SizedBox(height: 16),
                         // Fuel Level
                         Expanded(child: FuelGauge(fuelLevel: data.fuelLevel)),
                       ],

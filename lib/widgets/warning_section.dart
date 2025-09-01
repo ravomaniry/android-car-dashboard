@@ -6,6 +6,7 @@ import '../services/bluetooth_service.dart';
 import '../services/gps_service.dart';
 import '../services/dashboard_state.dart';
 import '../services/event_manager.dart';
+import 'service_status_dialog.dart';
 
 class WarningSection extends StatefulWidget {
   final bool oilWarning;
@@ -127,7 +128,11 @@ class _WarningSectionState extends State<WarningSection> {
                 border: Border.all(color: const Color(0xFF00FF41), width: 1),
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
-                  BoxShadow(color: const Color(0xFF00FF41).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2)),
+                  BoxShadow(
+                    color: const Color(0xFF00FF41).withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
                 ],
               ),
               child: Column(
@@ -226,7 +231,7 @@ class _WarningSectionState extends State<WarningSection> {
             return Icon(
               icon,
               color: isWarning
-                  ? Color.lerp(Colors.red.withOpacity(0.3), Colors.red, widget.blinkAnimation.value)
+                  ? Color.lerp(Colors.red.withValues(alpha: 0.3), Colors.red, widget.blinkAnimation.value)
                   : const Color(0xFF00FF41),
               size: 24,
             );
@@ -247,14 +252,14 @@ class _WarningSectionState extends State<WarningSection> {
         color: const Color(0xFF1A1A1A),
         border: Border.all(color: isLowVoltage ? Colors.red : const Color(0xFF333333), width: 1),
         borderRadius: BorderRadius.circular(8),
-        boxShadow: [BoxShadow(color: voltageColor.withOpacity(0.1), blurRadius: 8)],
+        boxShadow: [BoxShadow(color: voltageColor.withValues(alpha: 0.1), blurRadius: 8)],
       ),
       child: Center(
         child: AnimatedBuilder(
           animation: widget.blinkAnimation,
           builder: (context, child) {
             Color iconColor = isLowVoltage
-                ? Color.lerp(Colors.red.withOpacity(0.3), Colors.red, widget.blinkAnimation.value)!
+                ? Color.lerp(Colors.red.withValues(alpha: 0.3), Colors.red, widget.blinkAnimation.value)!
                 : voltageColor;
 
             return Icon(isLowVoltage ? Icons.battery_alert : Icons.battery_full, color: iconColor, size: 24);
@@ -291,7 +296,7 @@ class _WarningSectionState extends State<WarningSection> {
                   return Icon(
                     Icons.bluetooth,
                     color: isWarning
-                        ? Color.lerp(Colors.red.withOpacity(0.3), Colors.red, widget.blinkAnimation.value)
+                        ? Color.lerp(Colors.red.withValues(alpha: 0.3), Colors.red, widget.blinkAnimation.value)
                         : const Color(0xFF00FF41),
                     size: 24,
                   );
@@ -331,7 +336,7 @@ class _WarningSectionState extends State<WarningSection> {
                   return Icon(
                     Icons.gps_fixed,
                     color: isWarning
-                        ? Color.lerp(Colors.red.withOpacity(0.3), Colors.red, widget.blinkAnimation.value)
+                        ? Color.lerp(Colors.red.withValues(alpha: 0.3), Colors.red, widget.blinkAnimation.value)
                         : const Color(0xFF00FF41),
                     size: 24,
                   );
@@ -357,7 +362,7 @@ class _WarningSectionState extends State<WarningSection> {
         color: const Color(0xFF1A1A1A),
         border: Border.all(color: isLowVoltage ? Colors.red : const Color(0xFF333333), width: 1),
         borderRadius: BorderRadius.circular(8),
-        boxShadow: [BoxShadow(color: voltageColor.withOpacity(0.1), blurRadius: 8)],
+        boxShadow: [BoxShadow(color: voltageColor.withValues(alpha: 0.1), blurRadius: 8)],
       ),
       child: Row(
         children: [
@@ -365,7 +370,7 @@ class _WarningSectionState extends State<WarningSection> {
             animation: widget.blinkAnimation,
             builder: (context, child) {
               Color iconColor = isLowVoltage
-                  ? Color.lerp(Colors.red.withOpacity(0.3), Colors.red, widget.blinkAnimation.value)!
+                  ? Color.lerp(Colors.red.withValues(alpha: 0.3), Colors.red, widget.blinkAnimation.value)!
                   : voltageColor;
 
               return Icon(isLowVoltage ? Icons.battery_alert : Icons.battery_full, color: iconColor, size: 20);
@@ -426,7 +431,7 @@ class _WarningSectionState extends State<WarningSection> {
                     return Icon(
                       Icons.bluetooth,
                       color: isWarning
-                          ? Color.lerp(Colors.red.withOpacity(0.3), Colors.red, widget.blinkAnimation.value)
+                          ? Color.lerp(Colors.red.withValues(alpha: 0.3), Colors.red, widget.blinkAnimation.value)
                           : const Color(0xFF00FF41),
                       size: 16,
                     );
@@ -464,7 +469,7 @@ class _WarningSectionState extends State<WarningSection> {
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: Color.lerp(Colors.red.withOpacity(0.3), Colors.red, widget.blinkAnimation.value),
+                          color: Color.lerp(Colors.red.withValues(alpha: 0.3), Colors.red, widget.blinkAnimation.value),
                           shape: BoxShape.circle,
                         ),
                       );
@@ -507,7 +512,7 @@ class _WarningSectionState extends State<WarningSection> {
                     return Icon(
                       Icons.gps_fixed,
                       color: isWarning
-                          ? Color.lerp(Colors.red.withOpacity(0.3), Colors.red, widget.blinkAnimation.value)
+                          ? Color.lerp(Colors.red.withValues(alpha: 0.3), Colors.red, widget.blinkAnimation.value)
                           : const Color(0xFF00FF41),
                       size: 16,
                     );
@@ -545,7 +550,7 @@ class _WarningSectionState extends State<WarningSection> {
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: Color.lerp(Colors.red.withOpacity(0.3), Colors.red, widget.blinkAnimation.value),
+                          color: Color.lerp(Colors.red.withValues(alpha: 0.3), Colors.red, widget.blinkAnimation.value),
                           shape: BoxShape.circle,
                         ),
                       );
@@ -576,7 +581,7 @@ class _WarningSectionState extends State<WarningSection> {
               return Icon(
                 icon,
                 color: isWarning
-                    ? Color.lerp(Colors.red.withOpacity(0.3), Colors.red, widget.blinkAnimation.value)
+                    ? Color.lerp(Colors.red.withValues(alpha: 0.3), Colors.red, widget.blinkAnimation.value)
                     : const Color(0xFF00FF41),
                 size: 16,
               );
@@ -611,7 +616,7 @@ class _WarningSectionState extends State<WarningSection> {
                   width: 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: Color.lerp(Colors.red.withOpacity(0.3), Colors.red, widget.blinkAnimation.value),
+                    color: Color.lerp(Colors.red.withValues(alpha: 0.3), Colors.red, widget.blinkAnimation.value),
                     shape: BoxShape.circle,
                   ),
                 );
@@ -623,169 +628,77 @@ class _WarningSectionState extends State<WarningSection> {
   }
 
   void _showBluetoothDialog(BuildContext context) {
-    // Import and use the ServiceDialogs
-    // Since we can't import here, we'll use a simple approach
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Consumer<BluetoothService>(
-          builder: (context, bluetoothService, child) {
-            return AlertDialog(
-              backgroundColor: const Color(0xFF1A1A1A),
-              title: Row(
-                children: [
-                  Icon(Icons.bluetooth, color: const Color(0xFF00D9FF)),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Bluetooth Service',
-                    style: GoogleFonts.firaCode(
-                      color: const Color(0xFF00D9FF),
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+        return Consumer2<BluetoothService, EventManager>(
+          builder: (context, bluetoothService, eventManager, child) {
+            final leftContent = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Service Status:',
+                  style: GoogleFonts.firaCode(
+                    color: const Color(0xFF00D9FF),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
-              content: SizedBox(
-                width: 500,
-                height: 400,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Status section with events
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0F0F0F),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFF00D9FF), width: 1),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  bluetoothService.isAuthenticated ? Icons.bluetooth_connected : Icons.bluetooth,
-                                  color: bluetoothService.isAuthenticated
-                                      ? const Color(0xFF00FF41)
-                                      : const Color(0xFFFF5722),
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Bluetooth Status',
-                                  style: GoogleFonts.firaCode(
-                                    color: const Color(0xFF00D9FF),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              bluetoothService.status,
-                              style: GoogleFonts.firaCode(color: Colors.white, fontSize: 12),
-                            ),
-                            const SizedBox(height: 16),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: const Color(0xFF000000), borderRadius: BorderRadius.circular(4)),
+                  child: Text(bluetoothService.status, style: GoogleFonts.firaCode(color: Colors.white, fontSize: 12)),
+                ),
+              ],
+            );
 
-                            // Latest events section
-                            Text(
-                              'Latest Events (10):',
-                              style: GoogleFonts.firaCode(
-                                color: const Color(0xFF00D9FF),
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF000000),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Consumer<EventManager>(
-                                  builder: (context, eventManager, child) {
-                                    final events = eventManager.latestBluetoothEvents;
-                                    return SingleChildScrollView(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: events
-                                            .map(
-                                              (event) => _buildEventEntry(event.message, event.level, event.timestamp),
-                                            )
-                                            .toList(),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Control buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: bluetoothService.isConnecting
-                                ? null
-                                : () {
-                                    if (bluetoothService.isAuthenticated) {
-                                      bluetoothService.disconnect();
-                                    } else {
-                                      bluetoothService.connectToDevice();
-                                    }
-                                  },
-                            icon: Icon(
-                              bluetoothService.isAuthenticated ? Icons.bluetooth_disabled : Icons.bluetooth,
-                              color: Colors.white,
-                            ),
-                            label: Text(
-                              bluetoothService.isAuthenticated ? 'Disconnect' : 'Connect',
-                              style: GoogleFonts.firaCode(color: Colors.white),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: bluetoothService.isAuthenticated
-                                  ? const Color(0xFFFF5722)
-                                  : const Color(0xFF00FF41),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: bluetoothService.isConnecting ? null : () => bluetoothService.retryConnection(),
-                            icon: const Icon(Icons.refresh, color: Colors.white),
-                            label: Text('Retry', style: GoogleFonts.firaCode(color: Colors.white)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFF9800),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: Text('Close', style: GoogleFonts.firaCode(color: const Color(0xFF00D9FF))),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+            final actions = [
+              ElevatedButton.icon(
+                onPressed: bluetoothService.isConnecting
+                    ? null
+                    : () {
+                        if (bluetoothService.isAuthenticated) {
+                          bluetoothService.disconnect();
+                        } else {
+                          bluetoothService.connectToDevice();
+                        }
+                      },
+                icon: Icon(
+                  bluetoothService.isAuthenticated ? Icons.bluetooth_disabled : Icons.bluetooth,
+                  color: Colors.white,
+                  size: 16,
+                ),
+                label: Text(
+                  bluetoothService.isAuthenticated ? 'Disconnect' : 'Connect',
+                  style: GoogleFonts.firaCode(color: Colors.white, fontSize: 12),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: bluetoothService.isAuthenticated ? const Color(0xFFFF5722) : const Color(0xFF00FF41),
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 ),
               ),
+              ElevatedButton.icon(
+                onPressed: bluetoothService.isConnecting ? null : () => bluetoothService.retryConnection(),
+                icon: const Icon(Icons.refresh, color: Colors.white, size: 16),
+                label: Text('Retry', style: GoogleFonts.firaCode(color: Colors.white, fontSize: 12)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF9800),
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('Close', style: GoogleFonts.firaCode(color: const Color(0xFF00D9FF))),
+              ),
+            ];
+
+            return ServiceStatusDialog(
+              title: 'Bluetooth Service',
+              icon: Icons.bluetooth,
+              leftContent: leftContent,
+              events: eventManager.latestBluetoothEvents,
+              actions: actions,
             );
           },
         );
@@ -797,134 +710,135 @@ class _WarningSectionState extends State<WarningSection> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Consumer<GpsService>(
-          builder: (context, gpsService, child) {
-            return AlertDialog(
-              backgroundColor: const Color(0xFF1A1A1A),
-              title: Row(
-                children: [
-                  Icon(Icons.gps_fixed, color: const Color(0xFF00D9FF)),
-                  const SizedBox(width: 8),
-                  Text(
-                    'GPS Service',
-                    style: GoogleFonts.firaCode(
-                      color: const Color(0xFF00D9FF),
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+        return Consumer2<GpsService, EventManager>(
+          builder: (context, gpsService, eventManager, child) {
+            final leftContent = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Service Status:',
+                  style: GoogleFonts.firaCode(
+                    color: const Color(0xFF00D9FF),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
-              content: SizedBox(
-                width: 500,
-                height: 400,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Status section with events
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: const Color(0xFF000000), borderRadius: BorderRadius.circular(4)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(gpsService.status, style: GoogleFonts.firaCode(color: Colors.white, fontSize: 12)),
+                      const SizedBox(height: 12),
+
+                      // GPS Info: Speed | Last Update | Accuracy
+                      Container(
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0F0F0F),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFF00D9FF), width: 1),
+                          color: const Color(0xFF1A1A1A),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: const Color(0xFF333333), width: 1),
                         ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Speed
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Icon(
-                                  gpsService.isTracking ? Icons.gps_fixed : Icons.gps_not_fixed,
-                                  color: gpsService.isTracking ? const Color(0xFF00FF41) : const Color(0xFFFF5722),
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
                                 Text(
-                                  'GPS Status',
+                                  'Speed:',
+                                  style: GoogleFonts.firaCode(color: const Color(0xFF888888), fontSize: 10),
+                                ),
+                                Text(
+                                  '${gpsService.currentSpeed.toStringAsFixed(1)} km/h',
                                   style: GoogleFonts.firaCode(
-                                    color: const Color(0xFF00D9FF),
-                                    fontSize: 14,
+                                    color: const Color(0xFF00FF41),
+                                    fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 8),
-                            Text(gpsService.status, style: GoogleFonts.firaCode(color: Colors.white, fontSize: 12)),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 4),
 
-                            // Latest events section
-                            Text(
-                              'Latest Events (10):',
-                              style: GoogleFonts.firaCode(
-                                color: const Color(0xFF00D9FF),
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            // Last Update
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Last Update:',
+                                  style: GoogleFonts.firaCode(color: const Color(0xFF888888), fontSize: 10),
+                                ),
+                                Text(
+                                  gpsService.lastUpdateTime != null
+                                      ? _getRelativeTime(gpsService.lastUpdateTime!)
+                                      : 'Never',
+                                  style: GoogleFonts.firaCode(
+                                    color: const Color(0xFF00D9FF),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF000000),
-                                  borderRadius: BorderRadius.circular(4),
+                            const SizedBox(height: 4),
+
+                            // Accuracy
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Accuracy:',
+                                  style: GoogleFonts.firaCode(color: const Color(0xFF888888), fontSize: 10),
                                 ),
-                                child: Consumer<EventManager>(
-                                  builder: (context, eventManager, child) {
-                                    final events = eventManager.latestGpsEvents;
-                                    return SingleChildScrollView(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: events
-                                            .map(
-                                              (event) => _buildEventEntry(event.message, event.level, event.timestamp),
-                                            )
-                                            .toList(),
-                                      ),
-                                    );
-                                  },
+                                Text(
+                                  gpsService.currentAccuracy != null
+                                      ? '${gpsService.currentAccuracy!.toStringAsFixed(1)}m'
+                                      : 'N/A',
+                                  style: GoogleFonts.firaCode(
+                                    color: _getAccuracyColor(gpsService.currentAccuracy),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                           ],
                         ),
                       ),
-                    ),
+                    ],
+                  ),
+                ),
+              ],
+            );
 
-                    const SizedBox(height: 16),
-
-                    // Test and Close buttons in same row
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () async {
-                              final position = await gpsService.getCurrentLocation();
-                              // Location test completed silently - no popup messages
-                            },
-                            icon: const Icon(Icons.location_on, color: Colors.white),
-                            label: Text('Test Location', style: GoogleFonts.firaCode(color: Colors.white)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF00D9FF),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: Text('Close', style: GoogleFonts.firaCode(color: const Color(0xFF00D9FF))),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+            final actions = [
+              ElevatedButton.icon(
+                onPressed: () async {
+                  await gpsService.getCurrentLocation();
+                  // Location test completed silently - no popup messages
+                },
+                icon: const Icon(Icons.location_on, color: Colors.white, size: 16),
+                label: Text('Test Location', style: GoogleFonts.firaCode(color: Colors.white, fontSize: 12)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00D9FF),
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 ),
               ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('Close', style: GoogleFonts.firaCode(color: const Color(0xFF00D9FF))),
+              ),
+            ];
+
+            return ServiceStatusDialog(
+              title: 'GPS Service',
+              icon: Icons.gps_fixed,
+              leftContent: leftContent,
+              events: eventManager.latestGpsEvents,
+              actions: actions,
             );
           },
         );
@@ -932,55 +846,30 @@ class _WarningSectionState extends State<WarningSection> {
     );
   }
 
-  Widget _buildEventEntry(String message, String level, DateTime timestamp) {
-    Color levelColor;
-    switch (level) {
-      case 'INFO':
-        levelColor = const Color(0xFF00D9FF);
-        break;
-      case 'STATUS':
-        levelColor = const Color(0xFF00FF41);
-        break;
-      case 'CONFIG':
-        levelColor = const Color(0xFFFF9800);
-        break;
-      case 'TRIP':
-        levelColor = const Color(0xFFE91E63);
-        break;
-      case 'DATA':
-        levelColor = const Color(0xFF9C27B0);
-        break;
-      case 'ERROR':
-        levelColor = const Color(0xFFFF5722);
-        break;
-      default:
-        levelColor = const Color(0xFF888888);
-    }
+  String _getRelativeTime(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(color: levelColor.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
-            child: Text(
-              level,
-              style: GoogleFonts.firaCode(color: levelColor, fontSize: 8, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(message, style: GoogleFonts.firaCode(color: Colors.white, fontSize: 10)),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}',
-            style: GoogleFonts.firaCode(color: const Color(0xFF666666), fontSize: 8),
-          ),
-        ],
-      ),
-    );
+    if (difference.inSeconds < 60) {
+      return '${difference.inSeconds} sec ago';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} min ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
+    } else {
+      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
+    }
+  }
+
+  Color _getAccuracyColor(double? accuracy) {
+    if (accuracy == null) return const Color(0xFF666666);
+
+    if (accuracy <= 10) {
+      return const Color(0xFF00FF41); // Green for high accuracy
+    } else if (accuracy <= 50) {
+      return const Color(0xFFFF9800); // Orange for medium accuracy
+    } else {
+      return const Color(0xFFFF5722); // Red for low accuracy
+    }
   }
 }

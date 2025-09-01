@@ -20,6 +20,7 @@ class GpsService extends ChangeNotifier {
   bool _isTracking = false;
   bool _hasLocationPermission = false;
   String _status = 'GPS Disabled';
+  double? _currentAccuracy;
 
   // Retry logic variables
   int _retryAttempts = 0;
@@ -48,6 +49,8 @@ class GpsService extends ChangeNotifier {
   String get status => _status;
   TripData? get currentTrip => _currentTrip;
   double get currentSpeed => _currentSpeed;
+  DateTime? get lastUpdateTime => _lastUpdateTime;
+  double? get currentAccuracy => _currentAccuracy;
 
   GpsService(this._dashboardState) {
     _initializeService();
@@ -209,6 +212,9 @@ class GpsService extends ChangeNotifier {
 
     _currentSpeed = speedFromGPS.clamp(0.0, 300.0); // Cap at 300 km/h
 
+    // Store current accuracy
+    _currentAccuracy = position.accuracy;
+
     // Debug logging
     debugPrint('GPS Update - Lat: ${position.latitude}, Lon: ${position.longitude}');
     debugPrint('GPS Update - Speed from GPS: ${position.speed}, Calculated: $_currentSpeed km/h');
@@ -305,6 +311,7 @@ class GpsService extends ChangeNotifier {
     _recentSpeeds.clear();
     _lastPosition = null;
     _lastUpdateTime = null;
+    _currentAccuracy = null;
 
     // Reset trip average calculation
     _tripAverageDistance = 0.0;
