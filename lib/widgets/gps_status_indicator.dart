@@ -3,7 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../services/gps_service.dart';
 import '../services/event_manager.dart';
+import '../services/dashboard_state.dart';
+import '../themes/dashboard_theme.dart';
 import 'service_status_dialog.dart';
+import 'themed/analog_light_indicator.dart';
 
 class GpsStatusIndicator extends StatelessWidget {
   final Animation<double> blinkAnimation;
@@ -13,23 +16,40 @@ class GpsStatusIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<GpsService>(
-      builder: (context, gpsService, child) {
+    return Consumer2<GpsService, DashboardState>(
+      builder: (context, gpsService, dashboardState, child) {
         final isTracking = gpsService.isTracking;
         final hasPermission = gpsService.hasLocationPermission;
+        final theme = dashboardState.currentTheme;
 
         bool isWarning = !hasPermission || !isTracking;
 
         if (isCompact) {
-          return _buildCompactGpsWarning(context, isWarning, gpsService);
+          return _buildCompactGpsWarning(context, isWarning, gpsService, theme);
         }
 
-        return _buildGpsWarningItem(context, isWarning, gpsService);
+        return _buildGpsWarningItem(context, isWarning, gpsService, theme);
       },
     );
   }
 
-  Widget _buildCompactGpsWarning(BuildContext context, bool isWarning, GpsService gpsService) {
+  Widget _buildCompactGpsWarning(BuildContext context, bool isWarning, GpsService gpsService, DashboardTheme theme) {
+    if (theme.gaugeStyle == GaugeStyle.analog) {
+      return GestureDetector(
+        onTap: () {
+          _showGpsDialog(context, gpsService);
+        },
+        child: Center(
+          child: AnalogLightIndicator(
+            isActive: isWarning,
+            activeColor: theme.dangerColor,
+            inactiveColor: theme.successColor,
+            size: theme.iconSize * 1.5,
+            icon: Icons.gps_fixed,
+          ),
+        ),
+      );
+    }
     return GestureDetector(
       onTap: () {
         _showGpsDialog(context, gpsService);
@@ -60,7 +80,23 @@ class GpsStatusIndicator extends StatelessWidget {
     );
   }
 
-  Widget _buildGpsWarningItem(BuildContext context, bool isWarning, GpsService gpsService) {
+  Widget _buildGpsWarningItem(BuildContext context, bool isWarning, GpsService gpsService, DashboardTheme theme) {
+    if (theme.gaugeStyle == GaugeStyle.analog) {
+      return GestureDetector(
+        onTap: () {
+          _showGpsDialog(context, gpsService);
+        },
+        child: Center(
+          child: AnalogLightIndicator(
+            isActive: isWarning,
+            activeColor: theme.dangerColor,
+            inactiveColor: theme.successColor,
+            size: theme.iconSize * 1.5,
+            icon: Icons.gps_fixed,
+          ),
+        ),
+      );
+    }
     return GestureDetector(
       onTap: () {
         _showGpsDialog(context, gpsService);

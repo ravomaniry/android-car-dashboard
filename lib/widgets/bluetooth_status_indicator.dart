@@ -3,7 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../services/bluetooth_service.dart';
 import '../services/event_manager.dart';
+import '../services/dashboard_state.dart';
+import '../themes/dashboard_theme.dart';
 import 'service_status_dialog.dart';
+import 'themed/analog_light_indicator.dart';
 
 class BluetoothStatusIndicator extends StatelessWidget {
   final Animation<double> blinkAnimation;
@@ -13,23 +16,45 @@ class BluetoothStatusIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<BluetoothService>(
-      builder: (context, bluetoothService, child) {
+    return Consumer2<BluetoothService, DashboardState>(
+      builder: (context, bluetoothService, dashboardState, child) {
         final isConnected = bluetoothService.isConnected;
         final isConnecting = bluetoothService.isConnecting;
+        final theme = dashboardState.currentTheme;
 
         bool isWarning = !isConnected && !isConnecting;
 
         if (isCompact) {
-          return _buildCompactBluetoothWarning(context, isWarning, bluetoothService);
+          return _buildCompactBluetoothWarning(context, isWarning, bluetoothService, theme);
         }
 
-        return _buildBluetoothWarningItem(context, isWarning, bluetoothService);
+        return _buildBluetoothWarningItem(context, isWarning, bluetoothService, theme);
       },
     );
   }
 
-  Widget _buildCompactBluetoothWarning(BuildContext context, bool isWarning, BluetoothService bluetoothService) {
+  Widget _buildCompactBluetoothWarning(
+    BuildContext context,
+    bool isWarning,
+    BluetoothService bluetoothService,
+    DashboardTheme theme,
+  ) {
+    if (theme.gaugeStyle == GaugeStyle.analog) {
+      return GestureDetector(
+        onTap: () {
+          _showBluetoothDialog(context, bluetoothService);
+        },
+        child: Center(
+          child: AnalogLightIndicator(
+            isActive: isWarning,
+            activeColor: theme.dangerColor,
+            inactiveColor: theme.successColor,
+            size: theme.iconSize * 1.5,
+            icon: Icons.bluetooth,
+          ),
+        ),
+      );
+    }
     return GestureDetector(
       onTap: () {
         _showBluetoothDialog(context, bluetoothService);
@@ -60,7 +85,28 @@ class BluetoothStatusIndicator extends StatelessWidget {
     );
   }
 
-  Widget _buildBluetoothWarningItem(BuildContext context, bool isWarning, BluetoothService bluetoothService) {
+  Widget _buildBluetoothWarningItem(
+    BuildContext context,
+    bool isWarning,
+    BluetoothService bluetoothService,
+    DashboardTheme theme,
+  ) {
+    if (theme.gaugeStyle == GaugeStyle.analog) {
+      return GestureDetector(
+        onTap: () {
+          _showBluetoothDialog(context, bluetoothService);
+        },
+        child: Center(
+          child: AnalogLightIndicator(
+            isActive: isWarning,
+            activeColor: theme.dangerColor,
+            inactiveColor: theme.successColor,
+            size: theme.iconSize * 1.5,
+            icon: Icons.bluetooth,
+          ),
+        ),
+      );
+    }
     return GestureDetector(
       onTap: () {
         _showBluetoothDialog(context, bluetoothService);

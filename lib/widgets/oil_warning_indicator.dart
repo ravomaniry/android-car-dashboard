@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../services/dashboard_state.dart';
+import '../themes/dashboard_theme.dart';
+import 'themed/analog_light_indicator.dart';
 
 class OilWarningIndicator extends StatelessWidget {
   final bool oilWarning;
@@ -15,14 +19,32 @@ class OilWarningIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isCompact) {
-      return _buildCompactWarningItem('OIL', oilWarning, Icons.opacity);
-    }
+    return Consumer<DashboardState>(
+      builder: (context, dashboardState, child) {
+        final theme = dashboardState.currentTheme;
 
-    return _buildWarningItem('OIL', oilWarning, Icons.opacity, 'PRESSURE OK', 'LOW PRESSURE');
+        if (isCompact) {
+          return _buildCompactWarningItem('OIL', oilWarning, Icons.opacity, theme);
+        }
+
+        return _buildWarningItem('OIL', oilWarning, Icons.opacity, 'PRESSURE OK', 'LOW PRESSURE', theme);
+      },
+    );
   }
 
-  Widget _buildCompactWarningItem(String label, bool isWarning, IconData icon) {
+  Widget _buildCompactWarningItem(String label, bool isWarning, IconData icon, DashboardTheme theme) {
+    if (theme.gaugeStyle == GaugeStyle.analog) {
+      return Center(
+        child: AnalogLightIndicator(
+          isActive: isWarning,
+          activeColor: theme.dangerColor,
+          inactiveColor: theme.inactiveColor,
+          size: theme.iconSize * 1.5,
+          icon: icon,
+        ),
+      );
+    }
+
     return Container(
       height: 60,
       padding: const EdgeInsets.all(8),
@@ -48,7 +70,25 @@ class OilWarningIndicator extends StatelessWidget {
     );
   }
 
-  Widget _buildWarningItem(String label, bool isWarning, IconData icon, String okMessage, String warningMessage) {
+  Widget _buildWarningItem(
+    String label,
+    bool isWarning,
+    IconData icon,
+    String okMessage,
+    String warningMessage,
+    DashboardTheme theme,
+  ) {
+    if (theme.gaugeStyle == GaugeStyle.analog) {
+      return Center(
+        child: AnalogLightIndicator(
+          isActive: isWarning,
+          activeColor: theme.dangerColor,
+          inactiveColor: theme.inactiveColor,
+          size: theme.iconSize * 1.5,
+          icon: icon,
+        ),
+      );
+    }
     return Container(
       height: 60,
       padding: const EdgeInsets.all(8),

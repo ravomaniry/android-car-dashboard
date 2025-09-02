@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../services/dashboard_state.dart';
+import '../themes/dashboard_theme.dart';
+import 'themed/analog_light_indicator.dart';
 
 class SignalIndicators extends StatelessWidget {
   final bool leftTurnSignal;
@@ -19,58 +23,105 @@ class SignalIndicators extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isCompact) {
-      return Row(
-        children: [
-          Expanded(child: _buildCompactSignalIndicator('L', Icons.keyboard_arrow_left, leftTurnSignal || hazardLights)),
-          const SizedBox(width: 4),
-          Expanded(child: _buildCompactSignalIndicator('HAZ', Icons.warning, hazardLights)),
-          const SizedBox(width: 4),
-          Expanded(
-            child: _buildCompactSignalIndicator('R', Icons.keyboard_arrow_right, rightTurnSignal || hazardLights),
-          ),
-        ],
-      );
-    }
+    return Consumer<DashboardState>(
+      builder: (context, dashboardState, child) {
+        final theme = dashboardState.currentTheme;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'SIGNAL INDICATORS',
-          style: GoogleFonts.firaCode(color: const Color(0xFF888888), fontSize: 10, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        Row(
+        if (isCompact) {
+          return Row(
+            children: [
+              Expanded(
+                child: _buildCompactSignalIndicator(
+                  'L',
+                  Icons.keyboard_arrow_left,
+                  leftTurnSignal || hazardLights,
+                  theme,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(child: _buildCompactSignalIndicator('HAZ', Icons.warning, hazardLights, theme)),
+              const SizedBox(width: 4),
+              Expanded(
+                child: _buildCompactSignalIndicator(
+                  'R',
+                  Icons.keyboard_arrow_right,
+                  rightTurnSignal || hazardLights,
+                  theme,
+                ),
+              ),
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: _buildSignalIndicator(
-                'L',
-                'Left Turn',
-                Icons.keyboard_arrow_left,
-                leftTurnSignal || hazardLights,
-                leftTurnSignal || hazardLights,
-              ),
+            Text(
+              'SIGNAL INDICATORS',
+              style: GoogleFonts.firaCode(color: const Color(0xFF888888), fontSize: 10, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(width: 8),
-            Expanded(child: _buildSignalIndicator('HAZ', 'Hazard Lights', Icons.warning, hazardLights, hazardLights)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildSignalIndicator(
-                'R',
-                'Right Turn',
-                Icons.keyboard_arrow_right,
-                rightTurnSignal || hazardLights,
-                rightTurnSignal || hazardLights,
-              ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildSignalIndicator(
+                    'L',
+                    'Left Turn',
+                    Icons.keyboard_arrow_left,
+                    leftTurnSignal || hazardLights,
+                    leftTurnSignal || hazardLights,
+                    theme,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildSignalIndicator(
+                    'HAZ',
+                    'Hazard Lights',
+                    Icons.warning,
+                    hazardLights,
+                    hazardLights,
+                    theme,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildSignalIndicator(
+                    'R',
+                    'Right Turn',
+                    Icons.keyboard_arrow_right,
+                    rightTurnSignal || hazardLights,
+                    rightTurnSignal || hazardLights,
+                    theme,
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
-  Widget _buildSignalIndicator(String label, String description, IconData icon, bool isOn, bool shouldBlink) {
+  Widget _buildSignalIndicator(
+    String label,
+    String description,
+    IconData icon,
+    bool isOn,
+    bool shouldBlink,
+    DashboardTheme theme,
+  ) {
+    if (theme.gaugeStyle == GaugeStyle.analog) {
+      return Center(
+        child: AnalogLightIndicator(
+          isActive: isOn,
+          activeColor: theme.warningColor,
+          inactiveColor: theme.inactiveColor,
+          size: theme.iconSize * 1.2,
+          icon: icon,
+        ),
+      );
+    }
     return Container(
       height: 60,
       padding: const EdgeInsets.all(6),
@@ -113,7 +164,18 @@ class SignalIndicators extends StatelessWidget {
     );
   }
 
-  Widget _buildCompactSignalIndicator(String label, IconData icon, bool isOn) {
+  Widget _buildCompactSignalIndicator(String label, IconData icon, bool isOn, DashboardTheme theme) {
+    if (theme.gaugeStyle == GaugeStyle.analog) {
+      return Center(
+        child: AnalogLightIndicator(
+          isActive: isOn,
+          activeColor: theme.warningColor,
+          inactiveColor: theme.inactiveColor,
+          size: theme.iconSize * 1.2,
+          icon: icon,
+        ),
+      );
+    }
     return Container(
       height: 40,
       padding: const EdgeInsets.all(4),

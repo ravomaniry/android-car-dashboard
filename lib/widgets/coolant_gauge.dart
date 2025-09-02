@@ -26,116 +26,6 @@ class CoolantGauge extends StatelessWidget with MultiThemedWidget {
     );
   }
 
-  Widget _buildOriginalLayout(BuildContext context) {
-    return Consumer<DashboardState>(
-      builder: (context, dashboardState, child) {
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final isSmallScreen = dashboardState.isSmallScreen;
-
-            // Check if this section needs small screen mode
-            final needsSmallScreen = _checkIfNeedsSmallScreen(constraints);
-
-            // Notify state manager
-            if (needsSmallScreen && !isSmallScreen) {
-              // Use post-frame callback to avoid build-time state changes
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                dashboardState.requestSmallScreenMode('CoolantGauge');
-              });
-            } else if (!needsSmallScreen && isSmallScreen) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                dashboardState.requestBigScreenMode('CoolantGauge');
-              });
-            }
-
-            final theme = dashboardState.currentTheme;
-
-            return Container(
-              padding: EdgeInsets.all(theme.containerPadding.top * 0.5),
-              decoration: theme.getContainerDecoration(),
-              child: Stack(
-                children: [
-                  // Floating icon for small screens
-                  if (isSmallScreen)
-                    Positioned(
-                      top: 4,
-                      left: 4,
-                      child: Icon(Icons.thermostat, color: theme.primaryAccentColor, size: theme.iconSize),
-                    ),
-
-                  Column(
-                    children: [
-                      // Header (only show on normal screens)
-                      if (!isSmallScreen) ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.thermostat, color: theme.primaryAccentColor, size: theme.iconSize),
-                            SizedBox(width: theme.borderRadius * 0.5),
-                            Text('COOLANT', style: theme.getHeaderTextStyle(fontSize: 12)),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-
-                      // Gauge - fill available space
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, gaugeConstraints) {
-                            final gaugeSize = math.min(gaugeConstraints.maxWidth, gaugeConstraints.maxHeight) * 0.8;
-                            return Center(
-                              child: SizedBox(
-                                width: gaugeSize,
-                                height: gaugeSize,
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    // Dynamic gauge based on theme
-                                    CustomPaint(
-                                      size: Size(gaugeSize, gaugeSize),
-                                      painter: DynamicGaugePainter(
-                                        value: temperature,
-                                        minValue: minTemp,
-                                        maxValue: maxTemp,
-                                        theme: theme,
-                                        label: 'TEMP',
-                                      ),
-                                    ),
-
-                                    // Temperature display
-                                    Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          '${temperature.toInt()}°',
-                                          style: GoogleFonts.orbitron(
-                                            color: theme.getTemperatureColor(temperature),
-                                            fontSize: gaugeSize * 0.2,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        if (!isSmallScreen)
-                                          Text('CELSIUS', style: theme.getBodyTextStyle(fontSize: gaugeSize * 0.07)),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   // Check if this section needs small screen mode based on available space
   bool _checkIfNeedsSmallScreen(BoxConstraints constraints) {
     final availableWidth = constraints.maxWidth;
@@ -154,10 +44,7 @@ class CoolantGauge extends StatelessWidget with MultiThemedWidget {
   Widget buildClassic(BuildContext context, DashboardTheme theme) {
     return Container(
       padding: EdgeInsets.all(theme.containerPadding.top * 0.5),
-      decoration: BoxDecoration(
-        color: theme.backgroundColor,
-        borderRadius: BorderRadius.circular(theme.borderRadius),
-      ),
+      decoration: BoxDecoration(color: theme.backgroundColor, borderRadius: BorderRadius.circular(theme.borderRadius)),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final gaugeSize = math.min(constraints.maxWidth, constraints.maxHeight) * 0.9;
@@ -176,6 +63,17 @@ class CoolantGauge extends StatelessWidget with MultiThemedWidget {
                 tickColor: theme.textSecondaryColor,
                 textColor: theme.textPrimaryColor,
                 tickLabels: ['C', '70', '80', '90', 'H'],
+                criticalityColorFunction: (value) {
+                  if (value >= 100) {
+                    return theme.dangerColor; // Overheating - red
+                  } else if (value >= 90) {
+                    return theme.warningColor; // Hot - orange
+                  } else if (value >= 80) {
+                    return theme.primaryAccentColor; // Normal high - blue
+                  } else {
+                    return theme.successColor; // Normal - green
+                  }
+                },
               ),
             ),
           );
@@ -186,12 +84,86 @@ class CoolantGauge extends StatelessWidget with MultiThemedWidget {
 
   @override
   Widget buildModern(BuildContext context, DashboardTheme theme) {
-    return _buildDefaultGauge(context, theme);
+    return Container(
+      padding: EdgeInsets.all(theme.containerPadding.top * 0.5),
+      decoration: theme.getContainerDecoration(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final gaugeSize = math.min(constraints.maxWidth, constraints.maxHeight) * 0.9;
+          return Center(
+            child: SizedBox(
+              width: gaugeSize,
+              height: gaugeSize,
+              child: AnalogNeedleGauge(
+                value: temperature,
+                minValue: minTemp,
+                maxValue: maxTemp,
+                label: 'TEMP',
+                unit: '°C',
+                needleColor: theme.primaryAccentColor,
+                backgroundColor: theme.backgroundColor,
+                tickColor: theme.textSecondaryColor,
+                textColor: theme.textPrimaryColor,
+                tickLabels: ['C', '70', '80', '90', 'H'],
+                criticalityColorFunction: (value) {
+                  if (value >= 100) {
+                    return theme.dangerColor; // Overheating - red
+                  } else if (value >= 90) {
+                    return theme.warningColor; // Hot - orange
+                  } else if (value >= 80) {
+                    return theme.primaryAccentColor; // Normal high - blue
+                  } else {
+                    return theme.successColor; // Normal - green
+                  }
+                },
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
   Widget buildWoman(BuildContext context, DashboardTheme theme) {
-    return _buildDefaultGauge(context, theme);
+    return Container(
+      padding: EdgeInsets.all(theme.containerPadding.top * 0.5),
+      decoration: theme.getContainerDecoration(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final gaugeSize = math.min(constraints.maxWidth, constraints.maxHeight) * 0.9;
+          return Center(
+            child: SizedBox(
+              width: gaugeSize,
+              height: gaugeSize,
+              child: AnalogNeedleGauge(
+                value: temperature,
+                minValue: minTemp,
+                maxValue: maxTemp,
+                label: 'TEMP',
+                unit: '°C',
+                needleColor: theme.primaryAccentColor,
+                backgroundColor: theme.backgroundColor,
+                tickColor: theme.textSecondaryColor,
+                textColor: theme.textPrimaryColor,
+                tickLabels: ['C', '70', '80', '90', 'H'],
+                criticalityColorFunction: (value) {
+                  if (value >= 100) {
+                    return theme.dangerColor; // Overheating - red
+                  } else if (value >= 90) {
+                    return theme.warningColor; // Hot - orange
+                  } else if (value >= 80) {
+                    return theme.primaryAccentColor; // Normal high - blue
+                  } else {
+                    return theme.successColor; // Normal - green
+                  }
+                },
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildDefaultGauge(BuildContext context, DashboardTheme theme) {

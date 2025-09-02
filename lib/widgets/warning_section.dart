@@ -128,7 +128,9 @@ class _WarningSectionState extends State<WarningSection> {
 
             return Container(
               padding: theme.containerPadding,
-              decoration: theme.getContainerDecoration(),
+              decoration: theme.gaugeStyle == GaugeStyle.analog
+                  ? BoxDecoration(color: theme.backgroundColor, borderRadius: BorderRadius.circular(theme.borderRadius))
+                  : theme.getContainerDecoration(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -139,10 +141,10 @@ class _WarningSectionState extends State<WarningSection> {
                         if (theme.gaugeStyle == GaugeStyle.analog)
                           AnalogLightIndicator(
                             isActive: true,
-                            activeColor: theme.primaryAccentColor,
+                            activeColor: theme.warningColor,
                             inactiveColor: theme.inactiveColor,
                             size: theme.iconSize * 1.2,
-                            icon: Icons.settings,
+                            icon: Icons.warning,
                           )
                         else
                           Icon(Icons.terminal, color: theme.primaryAccentColor, size: theme.iconSize),

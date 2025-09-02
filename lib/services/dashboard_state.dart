@@ -293,8 +293,8 @@ class DashboardState extends ChangeNotifier {
 
     // Update GPS calculated data
     _data = _data.copyWith(
-      // Speed: 0 to 200 km/h
-      speed: sineWave * 200,
+      // Speed: 0 to 120 km/h
+      speed: sineWave * 120,
       // RPM: 800 to 7000 (not used anymore but kept for compatibility)
       rpm: 800 + sineWave * 6200,
       // Trip distance: 0 to 999.9 km

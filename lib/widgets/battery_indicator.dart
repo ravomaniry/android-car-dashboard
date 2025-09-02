@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../services/dashboard_state.dart';
+import '../themes/dashboard_theme.dart';
+import 'themed/analog_light_indicator.dart';
 
 class BatteryIndicator extends StatelessWidget {
   final double batteryVoltage;
@@ -15,16 +19,34 @@ class BatteryIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isCompact) {
-      return _buildCompactBatteryItem();
-    }
+    return Consumer<DashboardState>(
+      builder: (context, dashboardState, child) {
+        final theme = dashboardState.currentTheme;
 
-    return _buildBatteryItem();
+        if (isCompact) {
+          return _buildCompactBatteryItem(theme);
+        }
+
+        return _buildBatteryItem(theme);
+      },
+    );
   }
 
-  Widget _buildCompactBatteryItem() {
+  Widget _buildCompactBatteryItem(DashboardTheme theme) {
     bool isLowVoltage = batteryVoltage > 0 && batteryVoltage < 12.0;
     Color voltageColor = isLowVoltage ? Colors.red : const Color(0xFF00FF41);
+
+    if (theme.gaugeStyle == GaugeStyle.analog) {
+      return Center(
+        child: AnalogLightIndicator(
+          isActive: isLowVoltage,
+          activeColor: theme.dangerColor,
+          inactiveColor: theme.successColor,
+          size: theme.iconSize * 1.5,
+          icon: Icons.battery_alert,
+        ),
+      );
+    }
 
     return Container(
       height: 60,
@@ -50,11 +72,23 @@ class BatteryIndicator extends StatelessWidget {
     );
   }
 
-  Widget _buildBatteryItem() {
+  Widget _buildBatteryItem(DashboardTheme theme) {
     // Determine battery status based on voltage
     bool isLowVoltage = batteryVoltage > 0 && batteryVoltage < 12.0;
     Color voltageColor = isLowVoltage ? Colors.red : const Color(0xFF00FF41);
     String voltageText = batteryVoltage > 0 ? '${batteryVoltage.toStringAsFixed(1)}V' : '0.0V';
+
+    if (theme.gaugeStyle == GaugeStyle.analog) {
+      return Center(
+        child: AnalogLightIndicator(
+          isActive: isLowVoltage,
+          activeColor: theme.dangerColor,
+          inactiveColor: theme.successColor,
+          size: theme.iconSize * 1.5,
+          icon: Icons.battery_alert,
+        ),
+      );
+    }
 
     return Container(
       height: 60,

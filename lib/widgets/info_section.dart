@@ -55,7 +55,9 @@ class InfoSection extends StatelessWidget {
 
             return Container(
               padding: theme.containerPadding,
-              decoration: theme.getContainerDecoration(),
+              decoration: theme.gaugeStyle == GaugeStyle.analog
+                  ? BoxDecoration(color: theme.backgroundColor, borderRadius: BorderRadius.circular(theme.borderRadius))
+                  : theme.getContainerDecoration(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -69,7 +71,7 @@ class InfoSection extends StatelessWidget {
                             activeColor: theme.primaryAccentColor,
                             inactiveColor: theme.inactiveColor,
                             size: theme.iconSize * 1.2,
-                            icon: Icons.car_repair,
+                            icon: Icons.info,
                           )
                         else
                           Icon(Icons.info_outline, color: theme.primaryAccentColor, size: theme.iconSize),

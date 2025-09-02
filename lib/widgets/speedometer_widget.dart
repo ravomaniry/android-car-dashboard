@@ -6,6 +6,7 @@ import '../themes/dashboard_theme.dart';
 import 'dart:async'; // Added for Timer
 import 'dynamic_speedometer_painter.dart';
 import 'tachometer_painter.dart';
+import 'themed/analog_needle_gauge.dart';
 
 class SpeedometerWidget extends StatefulWidget {
   final double speed;
@@ -132,11 +133,43 @@ class _SpeedometerWidgetState extends State<SpeedometerWidget> with TickerProvid
                         ),
                       ),
                     ] else ...[
-                      // Dynamic speedometer and tachometer for other themes
-                      CustomPaint(
-                        size: Size(size, size),
-                        painter: DynamicSpeedometerPainter(speed: widget.speed, rpm: widget.rpm, theme: theme),
-                      ),
+                      // Use AnalogNeedleGauge for analog theme, DynamicSpeedometerPainter for others
+                      if (theme.gaugeStyle == GaugeStyle.analog) ...[
+                        // Analog needle gauge for speedometer
+                        SizedBox(
+                          width: size,
+                          height: size,
+                          child: AnalogNeedleGauge(
+                            value: widget.speed,
+                            minValue: 0.0,
+                            maxValue: 120.0,
+                            label: 'SPEED',
+                            unit: 'KM/H',
+                            needleColor: theme.primaryAccentColor,
+                            backgroundColor: theme.backgroundColor,
+                            tickColor: theme.textSecondaryColor,
+                            textColor: theme.textPrimaryColor,
+                            tickLabels: ['0', '20', '40', '60', '80', '100', '120'],
+                            criticalityColorFunction: (value) {
+                              if (value <= 40) {
+                                return theme.successColor; // Low speed - green
+                              } else if (value <= 70) {
+                                return theme.primaryAccentColor; // Normal speed - blue
+                              } else if (value <= 100) {
+                                return theme.warningColor; // High speed - orange
+                              } else {
+                                return theme.dangerColor; // Very high speed - red
+                              }
+                            },
+                          ),
+                        ),
+                      ] else ...[
+                        // Dynamic speedometer for other themes
+                        CustomPaint(
+                          size: Size(size, size),
+                          painter: DynamicSpeedometerPainter(speed: widget.speed, rpm: widget.rpm, theme: theme),
+                        ),
+                      ],
                       // Speed display (only show for some themes)
                       if (theme.gaugeStyle == GaugeStyle.digital || theme.gaugeStyle == GaugeStyle.elegant)
                         Container(
@@ -153,7 +186,7 @@ class _SpeedometerWidgetState extends State<SpeedometerWidget> with TickerProvid
                               Text(
                                 widget.speed.toInt().toString(),
                                 style: GoogleFonts.orbitron(
-                                  color: theme.speedometerColor,
+                                  color: _getSpeedCriticalityColor(theme),
                                   fontSize: size * 0.18,
                                   fontWeight: theme.headerFontWeight,
                                 ),
@@ -162,43 +195,41 @@ class _SpeedometerWidgetState extends State<SpeedometerWidget> with TickerProvid
                             ],
                           ),
                         ),
-                      // Analog speed display (classic theme)
+                      // RPM display for analog theme (speed is now shown in the gauge)
                       if (theme.gaugeStyle == GaugeStyle.analog)
                         Positioned(
-                          bottom: size * 0.25,
+                          bottom: size * 0.15,
                           child: Container(
                             padding: EdgeInsets.symmetric(horizontal: size * 0.04, vertical: size * 0.02),
                             decoration: BoxDecoration(
                               color: theme.containerColor,
                               borderRadius: BorderRadius.circular(theme.borderRadius),
-                              border: Border.all(color: theme.primaryAccentColor, width: theme.borderWidth),
+                              border: Border.all(color: theme.tachometerColor, width: theme.borderWidth),
                             ),
                             child: Text(
-                              '${widget.speed.toInt()} KM/H',
-                              style: theme.getHeaderTextStyle(
-                                fontSize: size * 0.08,
-                                color: _getSpeedCriticalityColor(theme),
-                              ),
+                              '${(widget.rpm / 1000).toStringAsFixed(1)}K RPM',
+                              style: theme.getBodyTextStyle(fontSize: size * 0.06, color: theme.tachometerColor),
                             ),
                           ),
                         ),
                     ],
-                    // RPM indicator (original position for Linux theme)
-                    Positioned(
-                      bottom: size * 0.15,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: size * 0.06, vertical: size * 0.02),
-                        decoration: BoxDecoration(
-                          color: theme.containerColor,
-                          borderRadius: BorderRadius.circular(theme.borderRadius),
-                          border: Border.all(color: theme.tachometerColor, width: theme.borderWidth),
-                        ),
-                        child: Text(
-                          '${(widget.rpm / 1000).toStringAsFixed(1)}K RPM',
-                          style: theme.getBodyTextStyle(fontSize: size * 0.045, color: theme.tachometerColor),
+                    // RPM indicator (only show for Linux theme)
+                    if (theme.gaugeStyle == GaugeStyle.htop)
+                      Positioned(
+                        bottom: size * 0.15,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: size * 0.06, vertical: size * 0.02),
+                          decoration: BoxDecoration(
+                            color: theme.containerColor,
+                            borderRadius: BorderRadius.circular(theme.borderRadius),
+                            border: Border.all(color: theme.tachometerColor, width: theme.borderWidth),
+                          ),
+                          child: Text(
+                            '${(widget.rpm / 1000).toStringAsFixed(1)}K RPM',
+                            style: theme.getBodyTextStyle(fontSize: size * 0.045, color: theme.tachometerColor),
+                          ),
                         ),
                       ),
-                    ),
                     // Demo button - appears when tapped, positioned at bottom right
                     if (_showDemoButton)
                       Positioned(
@@ -268,11 +299,11 @@ class _SpeedometerWidgetState extends State<SpeedometerWidget> with TickerProvid
 
   /// Get speed criticality color based on speed value
   Color _getSpeedCriticalityColor(DashboardTheme theme) {
-    if (widget.speed <= 50) {
+    if (widget.speed <= 40) {
       return theme.successColor; // Low speed - green
-    } else if (widget.speed <= 80) {
+    } else if (widget.speed <= 70) {
       return theme.primaryAccentColor; // Normal speed - blue
-    } else if (widget.speed <= 120) {
+    } else if (widget.speed <= 100) {
       return theme.warningColor; // High speed - orange
     } else {
       return theme.dangerColor; // Very high speed - red

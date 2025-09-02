@@ -93,9 +93,13 @@ class DynamicSpeedometerPainter extends CustomPainter {
     paint.shader = null;
     paint.style = PaintingStyle.stroke;
 
+    // Use single criticality color for all ticks based on current speed
+    final tickColor = _getSpeedColor(speed);
+    paint.color = tickColor;
+
     for (int i = 0; i <= 20; i++) {
       final angle = -math.pi * 1.25 + (i / 20) * math.pi * 1.5; // Rotated 90 degrees counterclockwise
-      paint.color = theme.secondaryAccentColor;
+
       paint.strokeWidth = i % 5 == 0 ? 4 : 2;
 
       final tickLength = i % 5 == 0 ? 25 : 15;
@@ -114,7 +118,7 @@ class DynamicSpeedometerPainter extends CustomPainter {
           text: TextSpan(
             text: '${i * 10}',
             style: TextStyle(
-              color: theme.textPrimaryColor,
+              color: tickColor,
               fontSize: 14,
               fontFamily: theme.fontFamily,
               fontWeight: theme.headerFontWeight,
@@ -142,8 +146,7 @@ class DynamicSpeedometerPainter extends CustomPainter {
     paint.color = theme.primaryAccentColor;
     canvas.drawCircle(center, 12, paint);
 
-    // Classic RPM gauge
-    _paintClassicRpm(canvas, size, center, radius + 35);
+    // RPM removed for analog theme - only speed needle
   }
 
   void _paintModernDigital(Canvas canvas, Size size) {

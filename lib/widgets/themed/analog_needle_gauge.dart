@@ -13,6 +13,7 @@ class AnalogNeedleGauge extends StatelessWidget {
   final Color tickColor;
   final Color textColor;
   final List<String>? tickLabels;
+  final Color Function(double value)? criticalityColorFunction;
 
   const AnalogNeedleGauge({
     super.key,
@@ -26,6 +27,7 @@ class AnalogNeedleGauge extends StatelessWidget {
     required this.tickColor,
     required this.textColor,
     this.tickLabels,
+    this.criticalityColorFunction,
   });
 
   @override
@@ -42,6 +44,7 @@ class AnalogNeedleGauge extends StatelessWidget {
         tickColor: tickColor,
         textColor: textColor,
         tickLabels: tickLabels,
+        criticalityColorFunction: criticalityColorFunction,
       ),
     );
   }
@@ -58,6 +61,7 @@ class AnalogNeedleGaugePainter extends CustomPainter {
   final Color tickColor;
   final Color textColor;
   final List<String>? tickLabels;
+  final Color Function(double value)? criticalityColorFunction;
 
   AnalogNeedleGaugePainter({
     required this.value,
@@ -70,6 +74,7 @@ class AnalogNeedleGaugePainter extends CustomPainter {
     required this.tickColor,
     required this.textColor,
     this.tickLabels,
+    this.criticalityColorFunction,
   });
 
   @override
@@ -83,11 +88,22 @@ class AnalogNeedleGaugePainter extends CustomPainter {
     paint.style = PaintingStyle.fill;
     canvas.drawCircle(center, radius, paint);
 
-    // Draw outer chrome ring
-    paint.color = Colors.grey[400]!;
+    // Draw realistic silver gauge rim with multiple layers
+    // Outer rim (darker silver)
+    paint.color = Color(0xFF8A8A8A);
     paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = 3.0;
+    paint.strokeWidth = 4.0;
     canvas.drawCircle(center, radius - 2, paint);
+
+    // Middle rim (brighter silver)
+    paint.color = Color(0xFFB8B8B8);
+    paint.strokeWidth = 2.0;
+    canvas.drawCircle(center, radius - 4, paint);
+
+    // Inner rim (lightest silver)
+    paint.color = Color(0xFFD0D0D0);
+    paint.strokeWidth = 1.0;
+    canvas.drawCircle(center, radius - 6, paint);
 
     // Draw tick marks and labels
     _drawTickMarks(canvas, center, radius, paint);
@@ -95,12 +111,18 @@ class AnalogNeedleGaugePainter extends CustomPainter {
     // Draw needle
     _drawNeedle(canvas, center, radius);
 
-    // Draw center hub
-    paint.color = Colors.grey[600]!;
+    // Draw realistic silver center hub
+    // Outer hub (darker silver)
+    paint.color = Color(0xFF6A6A6A);
     paint.style = PaintingStyle.fill;
+    canvas.drawCircle(center, 10, paint);
+
+    // Middle hub (medium silver)
+    paint.color = Color(0xFF9A9A9A);
     canvas.drawCircle(center, 8, paint);
 
-    paint.color = Colors.grey[400]!;
+    // Inner hub (brightest silver)
+    paint.color = Color(0xFFC0C0C0);
     canvas.drawCircle(center, 6, paint);
 
     // Draw label at bottom
@@ -113,11 +135,14 @@ class AnalogNeedleGaugePainter extends CustomPainter {
     const majorTicks = 5;
     const minorTicksPerMajor = 4;
 
+    // Use single criticality color for all ticks based on current value
+    final tickColorToUse = criticalityColorFunction != null ? criticalityColorFunction!(value) : tickColor;
+
     for (int i = 0; i <= majorTicks; i++) {
       final angle = startAngle + (i / majorTicks) * sweepAngle;
 
       // Major tick
-      paint.color = tickColor;
+      paint.color = tickColorToUse;
       paint.strokeWidth = 2.0;
       final majorTickStart = center + Offset(math.cos(angle) * (radius - 20), math.sin(angle) * (radius - 20));
       final majorTickEnd = center + Offset(math.cos(angle) * (radius - 5), math.sin(angle) * (radius - 5));
@@ -125,10 +150,10 @@ class AnalogNeedleGaugePainter extends CustomPainter {
 
       // Tick label
       if (tickLabels != null && i < tickLabels!.length) {
-        _drawTickLabel(canvas, center, angle, radius - 35, tickLabels![i]);
+        _drawTickLabel(canvas, center, angle, radius - 35, tickLabels![i], tickColorToUse);
       } else {
         final tickValue = minValue + (i / majorTicks) * (maxValue - minValue);
-        _drawTickLabel(canvas, center, angle, radius - 35, tickValue.toInt().toString());
+        _drawTickLabel(canvas, center, angle, radius - 35, tickValue.toInt().toString(), tickColorToUse);
       }
 
       // Minor ticks
@@ -146,11 +171,11 @@ class AnalogNeedleGaugePainter extends CustomPainter {
     }
   }
 
-  void _drawTickLabel(Canvas canvas, Offset center, double angle, double radius, String text) {
+  void _drawTickLabel(Canvas canvas, Offset center, double angle, double radius, String text, Color color) {
     final textPainter = TextPainter(
       text: TextSpan(
         text: text,
-        style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.bold),
+        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
       ),
       textDirection: TextDirection.ltr,
     );
@@ -199,10 +224,13 @@ class AnalogNeedleGaugePainter extends CustomPainter {
   }
 
   void _drawLabel(Canvas canvas, Offset center, double radius) {
+    // Use criticality color for label and value if function is provided
+    final labelColorToUse = criticalityColorFunction != null ? criticalityColorFunction!(value) : textColor;
+
     final textPainter = TextPainter(
       text: TextSpan(
         text: label,
-        style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.bold),
+        style: TextStyle(color: labelColorToUse, fontSize: 12, fontWeight: FontWeight.bold),
       ),
       textDirection: TextDirection.ltr,
     );
@@ -215,7 +243,7 @@ class AnalogNeedleGaugePainter extends CustomPainter {
     final valuePainter = TextPainter(
       text: TextSpan(
         text: '${value.toInt()}$unit',
-        style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold),
+        style: TextStyle(color: labelColorToUse, fontSize: 14, fontWeight: FontWeight.bold),
       ),
       textDirection: TextDirection.ltr,
     );

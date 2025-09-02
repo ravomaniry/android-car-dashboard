@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../services/dashboard_state.dart';
+import '../themes/dashboard_theme.dart';
+import 'themed/analog_light_indicator.dart';
 
 class LightingIndicators extends StatelessWidget {
   final bool drlOn;
@@ -19,42 +23,84 @@ class LightingIndicators extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isCompact) {
-      return Row(
-        children: [
-          Expanded(child: _buildCompactLightIndicator('DRL', Icons.wb_sunny, drlOn)),
-          const SizedBox(width: 4),
-          Expanded(child: _buildCompactLightIndicator('LOW', Icons.lightbulb_outline, lowBeamOn)),
-          const SizedBox(width: 4),
-          Expanded(child: _buildCompactLightIndicator('HIGH', Icons.highlight, highBeamOn)),
-        ],
-      );
-    }
+    return Consumer<DashboardState>(
+      builder: (context, dashboardState, child) {
+        final theme = dashboardState.currentTheme;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'LIGHTING SYSTEMS',
-          style: GoogleFonts.firaCode(color: const Color(0xFF888888), fontSize: 10, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        Row(
+        if (isCompact) {
+          return Row(
+            children: [
+              Expanded(child: _buildCompactLightIndicator('DRL', Icons.wb_sunny, drlOn, theme)),
+              const SizedBox(width: 4),
+              Expanded(child: _buildCompactLightIndicator('LOW', Icons.lightbulb_outline, lowBeamOn, theme)),
+              const SizedBox(width: 4),
+              Expanded(child: _buildCompactLightIndicator('HIGH', Icons.highlight, highBeamOn, theme)),
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(child: _buildLightIndicator('DRL', 'Daytime Running Lights', Icons.wb_sunny, drlOn, false)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildLightIndicator('LOW', 'Low Beam Headlights', Icons.lightbulb_outline, lowBeamOn, false),
+            Text(
+              'LIGHTING SYSTEMS',
+              style: GoogleFonts.firaCode(color: const Color(0xFF888888), fontSize: 10, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(width: 8),
-            Expanded(child: _buildLightIndicator('HIGH', 'High Beam Headlights', Icons.highlight, highBeamOn, false)),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildLightIndicator('DRL', 'Daytime Running Lights', Icons.wb_sunny, drlOn, false, theme),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildLightIndicator(
+                    'LOW',
+                    'Low Beam Headlights',
+                    Icons.lightbulb_outline,
+                    lowBeamOn,
+                    false,
+                    theme,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildLightIndicator(
+                    'HIGH',
+                    'High Beam Headlights',
+                    Icons.highlight,
+                    highBeamOn,
+                    false,
+                    theme,
+                  ),
+                ),
+              ],
+            ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
-  Widget _buildLightIndicator(String label, String description, IconData icon, bool isOn, bool shouldBlink) {
+  Widget _buildLightIndicator(
+    String label,
+    String description,
+    IconData icon,
+    bool isOn,
+    bool shouldBlink,
+    DashboardTheme theme,
+  ) {
+    if (theme.gaugeStyle == GaugeStyle.analog) {
+      return Center(
+        child: AnalogLightIndicator(
+          isActive: isOn,
+          activeColor: theme.primaryAccentColor,
+          inactiveColor: theme.inactiveColor,
+          size: theme.iconSize * 1.2,
+          icon: icon,
+        ),
+      );
+    }
     return Container(
       height: 60,
       padding: const EdgeInsets.all(6),
@@ -107,7 +153,18 @@ class LightingIndicators extends StatelessWidget {
     );
   }
 
-  Widget _buildCompactLightIndicator(String label, IconData icon, bool isOn) {
+  Widget _buildCompactLightIndicator(String label, IconData icon, bool isOn, DashboardTheme theme) {
+    if (theme.gaugeStyle == GaugeStyle.analog) {
+      return Center(
+        child: AnalogLightIndicator(
+          isActive: isOn,
+          activeColor: theme.primaryAccentColor,
+          inactiveColor: theme.inactiveColor,
+          size: theme.iconSize * 1.2,
+          icon: icon,
+        ),
+      );
+    }
     return Container(
       height: 40,
       padding: const EdgeInsets.all(4),

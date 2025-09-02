@@ -172,6 +172,17 @@ class FuelGauge extends StatelessWidget with MultiThemedWidget {
                 tickColor: theme.textSecondaryColor,
                 textColor: theme.textPrimaryColor,
                 tickLabels: ['E', '1/4', '1/2', '3/4', 'F'],
+                criticalityColorFunction: (value) {
+                  if (value <= 10) {
+                    return theme.dangerColor; // Critical - red
+                  } else if (value <= 25) {
+                    return theme.warningColor; // Low - orange
+                  } else if (value <= 50) {
+                    return theme.primaryAccentColor; // Medium - blue
+                  } else {
+                    return theme.successColor; // Good - green
+                  }
+                },
               ),
             ),
           );
@@ -182,12 +193,86 @@ class FuelGauge extends StatelessWidget with MultiThemedWidget {
 
   @override
   Widget buildModern(BuildContext context, DashboardTheme theme) {
-    return _buildDefaultGauge(context, theme);
+    return Container(
+      padding: EdgeInsets.all(theme.containerPadding.top * 0.5),
+      decoration: theme.getContainerDecoration(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final gaugeSize = math.min(constraints.maxWidth, constraints.maxHeight) * 0.9;
+          return Center(
+            child: SizedBox(
+              width: gaugeSize,
+              height: gaugeSize,
+              child: AnalogNeedleGauge(
+                value: fuelLevel,
+                minValue: 0.0,
+                maxValue: maxFuel,
+                label: 'FUEL',
+                unit: '%',
+                needleColor: theme.primaryAccentColor,
+                backgroundColor: theme.backgroundColor,
+                tickColor: theme.textSecondaryColor,
+                textColor: theme.textPrimaryColor,
+                tickLabels: ['E', '1/4', '1/2', '3/4', 'F'],
+                criticalityColorFunction: (value) {
+                  if (value <= 10) {
+                    return theme.dangerColor; // Critical - red
+                  } else if (value <= 25) {
+                    return theme.warningColor; // Low - orange
+                  } else if (value <= 50) {
+                    return theme.primaryAccentColor; // Medium - blue
+                  } else {
+                    return theme.successColor; // Good - green
+                  }
+                },
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
   Widget buildWoman(BuildContext context, DashboardTheme theme) {
-    return _buildDefaultGauge(context, theme);
+    return Container(
+      padding: EdgeInsets.all(theme.containerPadding.top * 0.5),
+      decoration: theme.getContainerDecoration(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final gaugeSize = math.min(constraints.maxWidth, constraints.maxHeight) * 0.9;
+          return Center(
+            child: SizedBox(
+              width: gaugeSize,
+              height: gaugeSize,
+              child: AnalogNeedleGauge(
+                value: fuelLevel,
+                minValue: 0.0,
+                maxValue: maxFuel,
+                label: 'FUEL',
+                unit: '%',
+                needleColor: theme.primaryAccentColor,
+                backgroundColor: theme.backgroundColor,
+                tickColor: theme.textSecondaryColor,
+                textColor: theme.textPrimaryColor,
+                tickLabels: ['E', '1/4', '1/2', '3/4', 'F'],
+                criticalityColorFunction: (value) {
+                  if (value <= 10) {
+                    return theme.dangerColor; // Critical - red
+                  } else if (value <= 25) {
+                    return theme.warningColor; // Low - orange
+                  } else if (value <= 50) {
+                    return theme.primaryAccentColor; // Medium - blue
+                  } else {
+                    return theme.successColor; // Good - green
+                  }
+                },
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildDefaultGauge(BuildContext context, DashboardTheme theme) {
