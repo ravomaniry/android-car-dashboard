@@ -106,6 +106,12 @@ class LightingIndicators extends StatelessWidget {
       padding: const EdgeInsets.all(6),
       decoration: theme.gaugeStyle == GaugeStyle.digital
           ? null // Transparent background for Modern theme
+          : theme.gaugeStyle == GaugeStyle.elegant
+          ? BoxDecoration(
+              color: theme.containerColor, // Gray background for Tesla theme
+              borderRadius: BorderRadius.circular(theme.borderRadius),
+              // No border for Tesla theme
+            )
           : BoxDecoration(
               color: const Color(0xFF0F0F0F),
               borderRadius: BorderRadius.circular(4),
@@ -172,6 +178,12 @@ class LightingIndicators extends StatelessWidget {
       padding: const EdgeInsets.all(4),
       decoration: theme.gaugeStyle == GaugeStyle.digital
           ? null // Transparent background for Modern theme
+          : theme.gaugeStyle == GaugeStyle.elegant
+          ? BoxDecoration(
+              color: theme.containerColor, // Gray background for Tesla theme
+              borderRadius: BorderRadius.circular(theme.borderRadius),
+              // No border for Tesla theme
+            )
           : BoxDecoration(
               color: const Color(0xFF0F0F0F),
               borderRadius: BorderRadius.circular(4),

@@ -309,26 +309,6 @@ class DynamicSpeedometerPainter extends CustomPainter {
     }
   }
 
-  void _paintClassicRpm(Canvas canvas, Size size, Offset center, double rpmRadius) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    // Vintage RPM ring
-    paint.color = theme.tachometerColor.withValues(alpha: 0.6);
-    paint.strokeWidth = 4;
-    canvas.drawCircle(center, rpmRadius, paint);
-
-    // RPM needle
-    final normalizedRpm = (rpm / 8000).clamp(0.0, 1.0);
-    final rpmAngle = -math.pi * 1.25 + normalizedRpm * math.pi * 1.5;
-
-    paint.color = theme.tachometerColor;
-    paint.strokeWidth = 4;
-    final rpmNeedleEnd = center + Offset(math.cos(rpmAngle) * (rpmRadius - 10), math.sin(rpmAngle) * (rpmRadius - 10));
-    canvas.drawLine(center, rpmNeedleEnd, paint);
-  }
-
   void _paintModernRpm(Canvas canvas, Size size, Offset center, double rpmRadius) {
     final paint = Paint()
       ..style = PaintingStyle.stroke
@@ -390,10 +370,8 @@ class DynamicSpeedometerPainter extends CustomPainter {
       return theme.secondaryAccentColor;
     }
 
-    // For other themes, use criticality colors
-    if (spd < 60) return theme.successColor;
-    if (spd < 120) return theme.warningColor;
-    return theme.dangerColor;
+    // For other themes, use standardized speed color method
+    return theme.getSpeedColor(spd);
   }
 
   @override

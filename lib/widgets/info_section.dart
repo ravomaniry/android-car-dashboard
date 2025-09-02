@@ -59,6 +59,8 @@ class InfoSection extends StatelessWidget {
                   ? BoxDecoration(color: theme.backgroundColor, borderRadius: BorderRadius.circular(theme.borderRadius))
                   : theme.gaugeStyle == GaugeStyle.digital
                   ? theme.getMetallicContainerDecoration()
+                  : theme.gaugeStyle == GaugeStyle.elegant
+                  ? null // No background/border for Tesla theme
                   : theme.getContainerDecoration(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

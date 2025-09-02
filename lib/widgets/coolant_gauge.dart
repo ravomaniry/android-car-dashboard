@@ -149,44 +149,90 @@ class CoolantGauge extends StatelessWidget with MultiThemedWidget {
   }
 
   @override
-  Widget buildWoman(BuildContext context, DashboardTheme theme) {
-    return Container(
-      padding: EdgeInsets.all(theme.containerPadding.top * 0.5),
-      decoration: theme.getContainerDecoration(),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final gaugeSize = math.min(constraints.maxWidth, constraints.maxHeight) * 0.9;
-          return Center(
-            child: SizedBox(
-              width: gaugeSize,
-              height: gaugeSize,
-              child: AnalogNeedleGauge(
-                value: temperature,
-                minValue: minTemp,
-                maxValue: maxTemp,
-                label: 'TEMP',
-                unit: '°C',
-                needleColor: theme.primaryAccentColor,
-                backgroundColor: theme.backgroundColor,
-                tickColor: theme.textSecondaryColor,
-                textColor: theme.textPrimaryColor,
-                tickLabels: ['C', '70', '80', '90', 'H'],
-                criticalityColorFunction: (value) {
-                  if (value >= 100) {
-                    return theme.dangerColor; // Overheating - red
-                  } else if (value >= 90) {
-                    return theme.warningColor; // Hot - orange
-                  } else if (value >= 80) {
-                    return theme.primaryAccentColor; // Normal high - blue
-                  } else {
-                    return theme.successColor; // Normal - green
-                  }
-                },
+  Widget buildTesla(BuildContext context, DashboardTheme theme) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final dashboardState = context.read<DashboardState>();
+        final isSmallScreen = dashboardState.isSmallScreen;
+
+        // Check if this section needs small screen mode
+        final needsSmallScreen = _checkIfNeedsSmallScreen(constraints);
+
+        // Notify state manager
+        if (needsSmallScreen && !isSmallScreen) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            dashboardState.requestSmallScreenMode('CoolantGauge');
+          });
+        } else if (!needsSmallScreen && isSmallScreen) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            dashboardState.requestBigScreenMode('CoolantGauge');
+          });
+        }
+
+        return Stack(
+          children: [
+            if (isSmallScreen)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Text('TEMP', style: theme.getHeaderTextStyle(fontSize: 10), textAlign: TextAlign.center),
+              ),
+            // Gauge with rounded background
+            Center(
+              child: Container(
+                width: constraints.maxWidth * 0.8,
+                height: constraints.maxHeight * 0.8,
+                decoration: BoxDecoration(
+                  color: theme.containerColor, // Gray background for circular gauge
+                  shape: BoxShape.circle, // Circular background
+                ),
+                child: Stack(
+                  children: [
+                    // Gauge painter
+                    CustomPaint(
+                      size: Size(constraints.maxWidth * 0.8, constraints.maxHeight * 0.8),
+                      painter: DynamicGaugePainter(
+                        value: temperature,
+                        minValue: minTemp,
+                        maxValue: maxTemp,
+                        label: 'TEMP',
+                        unit: '°C',
+                        theme: theme,
+                      ),
+                    ),
+                    // Value display in center circle
+                    Center(
+                      child: Container(
+                        width: constraints.maxWidth * 0.4,
+                        height: constraints.maxHeight * 0.4,
+                        decoration: BoxDecoration(
+                          color: theme.backgroundColor.withValues(alpha: 0.8),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: theme.borderColor, width: theme.borderWidth),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              temperature.toInt().toString(),
+                              style: theme.getHeaderTextStyle(
+                                fontSize: constraints.maxWidth * 0.08,
+                                color: _getTemperatureCriticalityColor(theme),
+                              ),
+                            ),
+                            Text('°C', style: theme.getBodyTextStyle(fontSize: constraints.maxWidth * 0.03)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          );
-        },
-      ),
+          ],
+        );
+      },
     );
   }
 
@@ -282,6 +328,10 @@ class CoolantGauge extends StatelessWidget with MultiThemedWidget {
         );
       },
     );
+  }
+
+  Color _getTemperatureCriticalityColor(DashboardTheme theme) {
+    return theme.getTemperatureColor(temperature);
   }
 }
 

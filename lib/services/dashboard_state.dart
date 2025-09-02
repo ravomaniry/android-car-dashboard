@@ -219,9 +219,9 @@ class DashboardState extends ChangeNotifier {
         _currentThemeType = DashboardThemeType.modern;
         break;
       case DashboardThemeType.modern:
-        _currentThemeType = DashboardThemeType.woman;
+        _currentThemeType = DashboardThemeType.tesla;
         break;
-      case DashboardThemeType.woman:
+      case DashboardThemeType.tesla:
         _currentThemeType = DashboardThemeType.linux;
         break;
     }

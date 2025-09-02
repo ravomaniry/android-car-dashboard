@@ -53,6 +53,12 @@ class BatteryIndicator extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       decoration: theme.gaugeStyle == GaugeStyle.digital
           ? null // Transparent background for Modern theme
+          : theme.gaugeStyle == GaugeStyle.elegant
+          ? BoxDecoration(
+              color: theme.containerColor, // Gray background for Tesla theme
+              borderRadius: BorderRadius.circular(theme.borderRadius),
+              // No border for Tesla theme
+            )
           : BoxDecoration(
               color: const Color(0xFF1A1A1A),
               border: Border.all(color: isLowVoltage ? Colors.red : const Color(0xFF333333), width: 1),
@@ -97,6 +103,12 @@ class BatteryIndicator extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       decoration: theme.gaugeStyle == GaugeStyle.digital
           ? null // Transparent background for Modern theme
+          : theme.gaugeStyle == GaugeStyle.elegant
+          ? BoxDecoration(
+              color: theme.containerColor, // Gray background for Tesla theme
+              borderRadius: BorderRadius.circular(theme.borderRadius),
+              // No border for Tesla theme
+            )
           : BoxDecoration(
               color: const Color(0xFF1A1A1A),
               border: Border.all(color: isLowVoltage ? Colors.red : const Color(0xFF333333), width: 1),

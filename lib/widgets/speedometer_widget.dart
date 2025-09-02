@@ -364,15 +364,7 @@ class _SpeedometerWidgetState extends State<SpeedometerWidget> with TickerProvid
       }
     }
 
-    // For other themes, use criticality colors
-    if (widget.speed <= 40) {
-      return theme.successColor; // Low speed - green
-    } else if (widget.speed <= 70) {
-      return theme.primaryAccentColor; // Normal speed - blue
-    } else if (widget.speed <= 100) {
-      return theme.warningColor; // High speed - orange
-    } else {
-      return theme.dangerColor; // Very high speed - red
-    }
+    // For other themes, use standardized speed color method
+    return theme.getSpeedColor(widget.speed);
   }
 }

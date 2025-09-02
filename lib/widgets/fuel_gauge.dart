@@ -25,117 +25,6 @@ class FuelGauge extends StatelessWidget with MultiThemedWidget {
     );
   }
 
-  Widget _buildOriginalLayout(BuildContext context) {
-    return Consumer<DashboardState>(
-      builder: (context, dashboardState, child) {
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final isSmallScreen = dashboardState.isSmallScreen;
-
-            // Check if this section needs small screen mode
-            final needsSmallScreen = _checkIfNeedsSmallScreen(constraints);
-
-            // Notify state manager
-            if (needsSmallScreen && !isSmallScreen) {
-              // Use post-frame callback to avoid build-time state changes
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                dashboardState.requestSmallScreenMode('FuelGauge');
-              });
-            } else if (!needsSmallScreen && isSmallScreen) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                dashboardState.requestBigScreenMode('FuelGauge');
-              });
-            }
-
-            final theme = dashboardState.currentTheme;
-
-            return Container(
-              padding: EdgeInsets.all(theme.containerPadding.top * 0.5),
-              decoration: theme.getContainerDecoration(),
-              child: Stack(
-                children: [
-                  // Floating icon for small screens
-                  if (isSmallScreen)
-                    Positioned(
-                      top: 4,
-                      left: 4,
-                      child: Icon(Icons.local_gas_station, color: theme.primaryAccentColor, size: theme.iconSize),
-                    ),
-
-                  Column(
-                    children: [
-                      // Header (only show on normal screens)
-                      if (!isSmallScreen) ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.local_gas_station, color: theme.primaryAccentColor, size: theme.iconSize),
-                            SizedBox(width: theme.borderRadius * 0.5),
-                            Text('FUEL LEVEL', style: theme.getHeaderTextStyle(fontSize: 12)),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-
-                      // Gauge - fill available space
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, gaugeConstraints) {
-                            final gaugeSize = math.min(gaugeConstraints.maxWidth, gaugeConstraints.maxHeight) * 0.8;
-                            return Center(
-                              child: SizedBox(
-                                width: gaugeSize,
-                                height: gaugeSize,
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    // Dynamic gauge based on theme
-                                    CustomPaint(
-                                      size: Size(gaugeSize, gaugeSize),
-                                      painter: DynamicGaugePainter(
-                                        value: fuelLevel,
-                                        minValue: 0.0,
-                                        maxValue: maxFuel,
-                                        theme: theme,
-                                        label: 'FUEL',
-                                        unit: '%',
-                                      ),
-                                    ),
-
-                                    // Fuel level display
-                                    Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          '${fuelLevel.toInt()}%',
-                                          style: GoogleFonts.orbitron(
-                                            color: theme.getFuelColor(fuelLevel),
-                                            fontSize: gaugeSize * 0.2,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        if (!isSmallScreen)
-                                          Text('FUEL', style: theme.getBodyTextStyle(fontSize: gaugeSize * 0.07)),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   // Check if this section needs small screen mode based on available space
   bool _checkIfNeedsSmallScreen(BoxConstraints constraints) {
     final availableWidth = constraints.maxWidth;
@@ -260,44 +149,91 @@ class FuelGauge extends StatelessWidget with MultiThemedWidget {
   }
 
   @override
-  Widget buildWoman(BuildContext context, DashboardTheme theme) {
-    return Container(
-      padding: EdgeInsets.all(theme.containerPadding.top * 0.5),
-      decoration: theme.getContainerDecoration(),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final gaugeSize = math.min(constraints.maxWidth, constraints.maxHeight) * 0.9;
-          return Center(
-            child: SizedBox(
-              width: gaugeSize,
-              height: gaugeSize,
-              child: AnalogNeedleGauge(
-                value: fuelLevel,
-                minValue: 0.0,
-                maxValue: maxFuel,
-                label: 'FUEL',
-                unit: '%',
-                needleColor: theme.primaryAccentColor,
-                backgroundColor: theme.backgroundColor,
-                tickColor: theme.textSecondaryColor,
-                textColor: theme.textPrimaryColor,
-                tickLabels: ['E', '1/4', '1/2', '3/4', 'F'],
-                criticalityColorFunction: (value) {
-                  if (value <= 10) {
-                    return theme.dangerColor; // Critical - red
-                  } else if (value <= 25) {
-                    return theme.warningColor; // Low - orange
-                  } else if (value <= 50) {
-                    return theme.primaryAccentColor; // Medium - blue
-                  } else {
-                    return theme.successColor; // Good - green
-                  }
-                },
+  Widget buildTesla(BuildContext context, DashboardTheme theme) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final dashboardState = context.read<DashboardState>();
+        final isSmallScreen = dashboardState.isSmallScreen;
+
+        // Check if this section needs small screen mode
+        final needsSmallScreen = _checkIfNeedsSmallScreen(constraints);
+
+        // Notify state manager
+        if (needsSmallScreen && !isSmallScreen) {
+          // Use post-frame callback to avoid build-time state changes
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            dashboardState.requestSmallScreenMode('FuelGauge');
+          });
+        } else if (!needsSmallScreen && isSmallScreen) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            dashboardState.requestBigScreenMode('FuelGauge');
+          });
+        }
+
+        return Stack(
+          children: [
+            if (isSmallScreen)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Text('FUEL', style: theme.getHeaderTextStyle(fontSize: 10), textAlign: TextAlign.center),
+              ),
+            // Gauge with rounded background
+            Center(
+              child: Container(
+                width: constraints.maxWidth * 0.8,
+                height: constraints.maxHeight * 0.8,
+                decoration: BoxDecoration(
+                  color: theme.containerColor, // Gray background for circular gauge
+                  shape: BoxShape.circle, // Circular background
+                ),
+                child: Stack(
+                  children: [
+                    // Gauge painter
+                    CustomPaint(
+                      size: Size(constraints.maxWidth * 0.8, constraints.maxHeight * 0.8),
+                      painter: DynamicGaugePainter(
+                        value: fuelLevel,
+                        minValue: 0.0,
+                        maxValue: maxFuel,
+                        label: 'FUEL',
+                        unit: '%',
+                        theme: theme,
+                      ),
+                    ),
+                    // Value display in center circle
+                    Center(
+                      child: Container(
+                        width: constraints.maxWidth * 0.4,
+                        height: constraints.maxHeight * 0.4,
+                        decoration: BoxDecoration(
+                          color: theme.backgroundColor.withValues(alpha: 0.8),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: theme.borderColor, width: theme.borderWidth),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              fuelLevel.toInt().toString(),
+                              style: theme.getHeaderTextStyle(
+                                fontSize: constraints.maxWidth * 0.08,
+                                color: _getFuelCriticalityColor(theme),
+                              ),
+                            ),
+                            Text('%', style: theme.getBodyTextStyle(fontSize: constraints.maxWidth * 0.03)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          );
-        },
-      ),
+          ],
+        );
+      },
     );
   }
 
@@ -394,6 +330,10 @@ class FuelGauge extends StatelessWidget with MultiThemedWidget {
         );
       },
     );
+  }
+
+  Color _getFuelCriticalityColor(DashboardTheme theme) {
+    return theme.getFuelColor(fuelLevel);
   }
 }
 

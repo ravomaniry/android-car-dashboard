@@ -25,6 +25,8 @@ class TripDetailItem extends StatelessWidget {
               ? BoxDecoration(color: theme.backgroundColor, borderRadius: BorderRadius.circular(theme.borderRadius))
               : theme.gaugeStyle == GaugeStyle.digital
               ? theme.getMetallicContainerDecoration()
+              : theme.gaugeStyle == GaugeStyle.elegant
+              ? null // No background for Tesla theme
               : theme.getContainerDecoration().copyWith(
                   border: Border.all(color: theme.secondaryAccentColor, width: theme.borderWidth),
                   boxShadow: [

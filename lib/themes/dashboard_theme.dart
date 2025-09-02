@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum DashboardThemeType { linux, classic, modern, woman }
+enum DashboardThemeType { linux, classic, modern, tesla }
 
 enum GaugeStyle {
   htop, // Linux terminal style with ticks
@@ -168,36 +168,36 @@ class DashboardTheme {
     elementSpacing: 12.0,
   );
 
-  // Woman theme - Elegant and sophisticated
-  static const DashboardTheme woman = DashboardTheme(
-    name: 'Woman',
-    backgroundColor: Color(0xFF2C1810),
-    containerColor: Color(0xFF3D2317),
-    borderColor: Color(0xFFE91E63),
-    primaryAccentColor: Color(0xFFE91E63),
-    secondaryAccentColor: Color(0xFFF8BBD9),
-    textPrimaryColor: Color(0xFFF8BBD9),
-    textSecondaryColor: Color(0xFFBCAAA4),
-    speedometerColor: Color(0xFFF8BBD9),
-    tachometerColor: Color(0xFFE91E63),
-    successColor: Color(0xFF81C784),
-    warningColor: Color(0xFFFFB74D),
-    dangerColor: Color(0xFFE57373),
-    inactiveColor: Color(0xFF8D6E63),
-    shadowColor: Color(0x70E91E63),
-    borderRadius: 30.0,
-    borderWidth: 2.0,
-    shadowBlurRadius: 24.0,
-    shadowOffset: Offset(0, 8),
-    fontFamily: 'sans-serif',
-    headerFontWeight: FontWeight.w500,
-    bodyFontWeight: FontWeight.w300,
-    iconSize: 19.0,
-    containerPadding: EdgeInsets.all(20.0),
-    gaugeStyle: GaugeStyle.elegant,
-    useGradients: true,
-    showDecorations: true,
-    elementSpacing: 14.0,
+  // Tesla theme - Minimalist and futuristic
+  static const DashboardTheme tesla = DashboardTheme(
+    name: 'Tesla',
+    backgroundColor: Color(0xFF000000), // Pure black background
+    containerColor: Color(0xFF1A1A1A), // Dark gray containers
+    borderColor: Color(0xFFCCCCCC), // Light gray borders
+    primaryAccentColor: Color(0xFFFFFFFF), // Pure white primary
+    secondaryAccentColor: Color(0xFFCCCCCC), // Light gray secondary
+    textPrimaryColor: Color(0xFFFFFFFF), // White text
+    textSecondaryColor: Color(0xFF999999), // Medium gray text
+    speedometerColor: Color(0xFFFFFFFF), // White speedometer
+    tachometerColor: Color(0xFFCCCCCC), // Light gray tachometer
+    successColor: Color(0xFF00FF00), // Bright green for success
+    warningColor: Color(0xFFFFAA00), // Orange for warnings
+    dangerColor: Color(0xFFFF0000), // Red for danger
+    inactiveColor: Color(0xFF333333), // Dark gray for inactive
+    shadowColor: Color(0x40FFFFFF), // Subtle white shadow
+    borderRadius: 0.0, // Sharp corners for minimalist look
+    borderWidth: 1.0, // Thin borders
+    shadowBlurRadius: 8.0, // Subtle shadows
+    shadowOffset: Offset(0, 2),
+    fontFamily: 'Roboto', // Clean, modern font
+    headerFontWeight: FontWeight.w300, // Light weight for minimalist feel
+    bodyFontWeight: FontWeight.w300, // Light weight
+    iconSize: 20.0, // Slightly larger icons
+    containerPadding: EdgeInsets.all(20.0), // Generous padding
+    gaugeStyle: GaugeStyle.elegant, // Elegant curves
+    useGradients: false, // No gradients for clean look
+    showDecorations: false, // Minimal decorations
+    elementSpacing: 16.0, // Clean spacing
   );
 
   static DashboardTheme getTheme(DashboardThemeType type) {
@@ -208,8 +208,8 @@ class DashboardTheme {
         return classic;
       case DashboardThemeType.modern:
         return modern;
-      case DashboardThemeType.woman:
-        return woman;
+      case DashboardThemeType.tesla:
+        return tesla;
     }
   }
 
@@ -224,6 +224,13 @@ class DashboardTheme {
     if (temp < 70) return secondaryAccentColor;
     if (temp > 100) return dangerColor;
     return successColor;
+  }
+
+  Color getSpeedColor(double speed) {
+    if (speed <= 40) return successColor;       // Low speed - green
+    if (speed <= 70) return primaryAccentColor; // Normal speed - blue
+    if (speed <= 100) return warningColor;      // High speed - orange
+    return dangerColor;                         // Very high speed - red
   }
 
   Color getRpmColor(double rpm) {

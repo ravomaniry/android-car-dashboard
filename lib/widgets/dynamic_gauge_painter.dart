@@ -234,6 +234,14 @@ class DynamicGaugePainter extends CustomPainter {
   }
 
   Color _getValueColor(double val) {
+    // Use theme's standardized criticality methods based on gauge type
+    if (label == 'FUEL') {
+      return theme.getFuelColor(val);
+    } else if (label == 'TEMP') {
+      return theme.getTemperatureColor(val);
+    }
+
+    // Fallback to normalized approach for other gauges
     final normalized = ((val - minValue) / (maxValue - minValue)).clamp(0.0, 1.0);
 
     // For Modern theme, use theme colors instead of criticality colors

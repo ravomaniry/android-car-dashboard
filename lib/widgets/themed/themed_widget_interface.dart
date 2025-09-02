@@ -26,8 +26,8 @@ mixin MultiThemedWidget {
   /// Build widget for Modern/digital theme
   Widget buildModern(BuildContext context, DashboardTheme theme);
 
-  /// Build widget for Woman/elegant theme
-  Widget buildWoman(BuildContext context, DashboardTheme theme);
+  /// Build widget for Tesla/minimalist theme
+  Widget buildTesla(BuildContext context, DashboardTheme theme);
 
   /// Build the appropriate widget based on theme
   Widget buildForTheme(BuildContext context, DashboardTheme theme) {
@@ -39,7 +39,7 @@ mixin MultiThemedWidget {
       case GaugeStyle.digital:
         return buildModern(context, theme);
       case GaugeStyle.elegant:
-        return buildWoman(context, theme);
+        return buildTesla(context, theme);
     }
   }
 }
