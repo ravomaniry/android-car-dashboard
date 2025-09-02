@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../services/dashboard_state.dart';
+import 'lighting_indicators.dart';
+import 'signal_indicators.dart';
 
 class InfoSection extends StatelessWidget {
   final bool drlOn;
@@ -112,68 +114,20 @@ class InfoSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'LIGHTING SYSTEMS',
-                style: GoogleFonts.firaCode(color: const Color(0xFF888888), fontSize: 10, fontWeight: FontWeight.bold),
+              LightingIndicators(
+                drlOn: drlOn,
+                lowBeamOn: lowBeamOn,
+                highBeamOn: highBeamOn,
+                blinkAnimation: blinkAnimation,
+                isCompact: false,
               ),
-              const SizedBox(height: 12),
-
-              // Light indicators in a row
-              Row(
-                children: [
-                  Expanded(child: _buildLightIndicator('DRL', 'Daytime Running Lights', Icons.wb_sunny, drlOn, false)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildLightIndicator(
-                      'LOW',
-                      'Low Beam Headlights',
-                      Icons.lightbulb_outline,
-                      lowBeamOn,
-                      false,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildLightIndicator('HIGH', 'High Beam Headlights', Icons.highlight, highBeamOn, false),
-                  ),
-                ],
-              ),
-
               const SizedBox(height: 16),
-
-              Text(
-                'SIGNAL INDICATORS',
-                style: GoogleFonts.firaCode(color: const Color(0xFF888888), fontSize: 10, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-
-              // Turn signals in a row (L - HAZ - R)
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSignalIndicator(
-                      'L',
-                      'Left Turn',
-                      Icons.keyboard_arrow_left,
-                      leftTurnSignal || hazardLights,
-                      leftTurnSignal || hazardLights,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildSignalIndicator('HAZ', 'Hazard Lights', Icons.warning, hazardLights, hazardLights),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildSignalIndicator(
-                      'R',
-                      'Right Turn',
-                      Icons.keyboard_arrow_right,
-                      rightTurnSignal || hazardLights,
-                      rightTurnSignal || hazardLights,
-                    ),
-                  ),
-                ],
+              SignalIndicators(
+                leftTurnSignal: leftTurnSignal,
+                rightTurnSignal: rightTurnSignal,
+                hazardLights: hazardLights,
+                blinkAnimation: blinkAnimation,
+                isCompact: false,
               ),
             ],
           ),
@@ -190,207 +144,25 @@ class InfoSection extends StatelessWidget {
         Expanded(
           child: Column(
             children: [
-              // Light indicators in a row - compact
-              Row(
-                children: [
-                  Expanded(child: _buildCompactLightIndicator('DRL', Icons.wb_sunny, drlOn)),
-                  const SizedBox(width: 4),
-                  Expanded(child: _buildCompactLightIndicator('LOW', Icons.lightbulb_outline, lowBeamOn)),
-                  const SizedBox(width: 4),
-                  Expanded(child: _buildCompactLightIndicator('HIGH', Icons.highlight, highBeamOn)),
-                ],
+              LightingIndicators(
+                drlOn: drlOn,
+                lowBeamOn: lowBeamOn,
+                highBeamOn: highBeamOn,
+                blinkAnimation: blinkAnimation,
+                isCompact: true,
               ),
-
               const SizedBox(height: 8),
-
-              // Turn signals in a row - compact
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildCompactSignalIndicator('L', Icons.keyboard_arrow_left, leftTurnSignal || hazardLights),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(child: _buildCompactSignalIndicator('HAZ', Icons.warning, hazardLights)),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: _buildCompactSignalIndicator(
-                      'R',
-                      Icons.keyboard_arrow_right,
-                      rightTurnSignal || hazardLights,
-                    ),
-                  ),
-                ],
+              SignalIndicators(
+                leftTurnSignal: leftTurnSignal,
+                rightTurnSignal: rightTurnSignal,
+                hazardLights: hazardLights,
+                blinkAnimation: blinkAnimation,
+                isCompact: true,
               ),
             ],
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildLightIndicator(String label, String description, IconData icon, bool isOn, bool shouldBlink) {
-    return Container(
-      height: 60,
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F0F0F),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: isOn ? const Color(0xFF00FF41) : const Color(0xFF333333), width: 1),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedBuilder(
-            animation: blinkAnimation,
-            builder: (context, child) {
-              final color = isOn
-                  ? (shouldBlink
-                        ? Color.lerp(
-                            const Color(0xFF00FF41).withValues(alpha: 0.3),
-                            const Color(0xFF00FF41),
-                            blinkAnimation.value,
-                          )
-                        : const Color(0xFF00FF41))
-                  : const Color(0xFF333333);
-
-              return Icon(icon, color: color, size: 14);
-            },
-          ),
-          const SizedBox(height: 2),
-          Flexible(
-            child: Text(
-              label,
-              style: GoogleFonts.firaCode(
-                color: isOn ? const Color(0xFF00FF41) : const Color(0xFF666666),
-                fontSize: 8,
-                fontWeight: FontWeight.bold,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          Flexible(
-            child: Text(
-              isOn ? 'ON' : 'OFF',
-              style: GoogleFonts.firaCode(color: isOn ? const Color(0xFF888888) : const Color(0xFF444444), fontSize: 6),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCompactLightIndicator(String label, IconData icon, bool isOn) {
-    return Container(
-      height: 40,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F0F0F),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: isOn ? const Color(0xFF00FF41) : const Color(0xFF333333), width: 1),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: isOn ? const Color(0xFF00FF41) : const Color(0xFF333333), size: 12),
-          const SizedBox(height: 2),
-          Flexible(
-            child: Text(
-              label,
-              style: GoogleFonts.firaCode(
-                color: isOn ? const Color(0xFF00FF41) : const Color(0xFF666666),
-                fontSize: 6,
-                fontWeight: FontWeight.bold,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          Flexible(
-            child: Text(
-              isOn ? 'ON' : 'OFF',
-              style: GoogleFonts.firaCode(color: isOn ? const Color(0xFF888888) : const Color(0xFF444444), fontSize: 4),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSignalIndicator(String label, String description, IconData icon, bool isOn, bool shouldBlink) {
-    return Container(
-      height: 60,
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F0F0F),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: isOn ? Colors.orange : const Color(0xFF333333), width: 1),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedBuilder(
-            animation: blinkAnimation,
-            builder: (context, child) {
-              final color = isOn
-                  ? (shouldBlink
-                        ? Color.lerp(Colors.orange.withValues(alpha: 0.3), Colors.orange, blinkAnimation.value)
-                        : Colors.orange)
-                  : const Color(0xFF333333);
-
-              return Icon(icon, color: color, size: 16);
-            },
-          ),
-          const SizedBox(height: 4),
-          Flexible(
-            child: Text(
-              label,
-              style: GoogleFonts.firaCode(
-                color: isOn ? Colors.orange : const Color(0xFF666666),
-                fontSize: 8,
-                fontWeight: FontWeight.bold,
-              ),
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCompactSignalIndicator(String label, IconData icon, bool isOn) {
-    return Container(
-      height: 40,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F0F0F),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: isOn ? Colors.orange : const Color(0xFF333333), width: 1),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: isOn ? Colors.orange : const Color(0xFF333333), size: 12),
-          const SizedBox(height: 2),
-          Flexible(
-            child: Text(
-              label,
-              style: GoogleFonts.firaCode(
-                color: isOn ? Colors.orange : const Color(0xFF666666),
-                fontSize: 6,
-                fontWeight: FontWeight.bold,
-              ),
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'dashboard_screen_new.dart';
+import 'dashboard_screen.dart';
 import 'services/dashboard_state.dart';
 import 'services/bluetooth_service.dart';
 import 'services/gps_service.dart';
