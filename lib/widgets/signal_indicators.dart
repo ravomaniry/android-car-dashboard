@@ -125,11 +125,13 @@ class SignalIndicators extends StatelessWidget {
     return Container(
       height: 60,
       padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F0F0F),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: isOn ? Colors.orange : const Color(0xFF333333), width: 1),
-      ),
+      decoration: theme.gaugeStyle == GaugeStyle.digital
+          ? null // Transparent background for Modern theme
+          : BoxDecoration(
+              color: const Color(0xFF0F0F0F),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: isOn ? Colors.orange : const Color(0xFF333333), width: 1),
+            ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
@@ -179,11 +181,13 @@ class SignalIndicators extends StatelessWidget {
     return Container(
       height: 40,
       padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F0F0F),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: isOn ? Colors.orange : const Color(0xFF333333), width: 1),
-      ),
+      decoration: theme.gaugeStyle == GaugeStyle.digital
+          ? null // Transparent background for Modern theme
+          : BoxDecoration(
+              color: const Color(0xFF0F0F0F),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: isOn ? Colors.orange : const Color(0xFF333333), width: 1),
+            ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,

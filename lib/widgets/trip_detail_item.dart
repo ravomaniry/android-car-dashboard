@@ -21,21 +21,20 @@ class TripDetailItem extends StatelessWidget {
         return Container(
           height: 100,
           padding: EdgeInsets.all(theme.containerPadding.top * 0.5), // Scale padding to fit
-          decoration: theme.gaugeStyle == GaugeStyle.analog 
-            ? BoxDecoration(
-                color: theme.backgroundColor,
-                borderRadius: BorderRadius.circular(theme.borderRadius),
-              )
-            : theme.getContainerDecoration().copyWith(
-                border: Border.all(color: theme.secondaryAccentColor, width: theme.borderWidth),
-                boxShadow: [
-                  BoxShadow(
-                    color: theme.secondaryAccentColor.withValues(alpha: 0.1),
-                    blurRadius: theme.shadowBlurRadius,
-                    offset: theme.shadowOffset,
-                  ),
-                ],
-              ),
+          decoration: theme.gaugeStyle == GaugeStyle.analog
+              ? BoxDecoration(color: theme.backgroundColor, borderRadius: BorderRadius.circular(theme.borderRadius))
+              : theme.gaugeStyle == GaugeStyle.digital
+              ? theme.getMetallicContainerDecoration()
+              : theme.getContainerDecoration().copyWith(
+                  border: Border.all(color: theme.secondaryAccentColor, width: theme.borderWidth),
+                  boxShadow: [
+                    BoxShadow(
+                      color: theme.secondaryAccentColor.withValues(alpha: 0.1),
+                      blurRadius: theme.shadowBlurRadius,
+                      offset: theme.shadowOffset,
+                    ),
+                  ],
+                ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min, // Fix overflow

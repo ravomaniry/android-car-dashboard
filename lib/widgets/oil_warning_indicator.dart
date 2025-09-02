@@ -48,11 +48,13 @@ class OilWarningIndicator extends StatelessWidget {
     return Container(
       height: 60,
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F0F0F),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: isWarning ? Colors.red : const Color(0xFF333333), width: 1),
-      ),
+      decoration: theme.gaugeStyle == GaugeStyle.digital
+          ? null // Transparent background for Modern theme
+          : BoxDecoration(
+              color: theme.containerColor,
+              borderRadius: BorderRadius.circular(theme.borderRadius),
+              border: Border.all(color: isWarning ? theme.dangerColor : theme.borderColor, width: theme.borderWidth),
+            ),
       child: Center(
         child: AnimatedBuilder(
           animation: blinkAnimation,
@@ -92,11 +94,13 @@ class OilWarningIndicator extends StatelessWidget {
     return Container(
       height: 60,
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F0F0F),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: isWarning ? Colors.red : const Color(0xFF333333), width: 1),
-      ),
+      decoration: theme.gaugeStyle == GaugeStyle.digital
+          ? null // Transparent background for Modern theme
+          : BoxDecoration(
+              color: theme.containerColor,
+              borderRadius: BorderRadius.circular(theme.borderRadius),
+              border: Border.all(color: isWarning ? theme.dangerColor : theme.borderColor, width: theme.borderWidth),
+            ),
       child: Row(
         children: [
           AnimatedBuilder(

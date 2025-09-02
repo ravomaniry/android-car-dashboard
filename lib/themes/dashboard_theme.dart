@@ -136,34 +136,34 @@ class DashboardTheme {
     elementSpacing: 16.0,
   );
 
-  // Modern car theme - Sleek digital displays
+  // Modern car theme - Sleek digital displays with metallic styling
   static const DashboardTheme modern = DashboardTheme(
     name: 'Modern',
-    backgroundColor: Color(0xFF000000),
-    containerColor: Color(0xFF0F0F23),
-    borderColor: Color(0xFF00E5FF),
+    backgroundColor: Color(0xFF0A0A0A),
+    containerColor: Color(0xFF1A1A1A),
+    borderColor: Color(0xFFB0BEC5), // Metallic silver border
     primaryAccentColor: Color(0xFF00E5FF),
     secondaryAccentColor: Color(0xFF40C4FF),
-    textPrimaryColor: Color(0xFF40C4FF),
-    textSecondaryColor: Color(0xFF757575),
+    textPrimaryColor: Color(0xFFE0E0E0), // Brighter metallic text
+    textSecondaryColor: Color(0xFF9E9E9E), // Metallic gray
     speedometerColor: Color(0xFF00E5FF),
     tachometerColor: Color(0xFF40C4FF),
     successColor: Color(0xFF00E676),
     warningColor: Color(0xFFFFAB00),
-    dangerColor: Color(0xFFFF1744),
-    inactiveColor: Color(0xFF263238),
-    shadowColor: Color(0x6000E5FF),
-    borderRadius: 12.0,
-    borderWidth: 1.0,
-    shadowBlurRadius: 20.0,
-    shadowOffset: Offset(0, 4),
-    fontFamily: 'sans-serif',
-    headerFontWeight: FontWeight.w600,
-    bodyFontWeight: FontWeight.w400,
+    dangerColor: Color(0xFFFF1744), // Only used for errors
+    inactiveColor: Color(0xFF424242),
+    shadowColor: Color(0x80B0BEC5), // Metallic shadow
+    borderRadius: 8.0, // More angular, modern look
+    borderWidth: 1.5, // Slightly thicker for metallic appearance
+    shadowBlurRadius: 15.0,
+    shadowOffset: Offset(0, 3),
+    fontFamily: 'RobotoMono', // Monospace font for digital/tech feel
+    headerFontWeight: FontWeight.w700,
+    bodyFontWeight: FontWeight.w500,
     iconSize: 18.0,
     containerPadding: EdgeInsets.all(16.0),
     gaugeStyle: GaugeStyle.digital,
-    useGradients: true,
+    useGradients: false, // Disabled to prevent crashes
     showDecorations: true,
     elementSpacing: 12.0,
   );
@@ -249,6 +249,25 @@ class DashboardTheme {
       border: Border.all(color: borderColor, width: borderWidth),
       borderRadius: BorderRadius.circular(borderRadius),
       boxShadow: [BoxShadow(color: shadowColor, blurRadius: shadowBlurRadius, offset: shadowOffset)],
+    );
+  }
+
+  // Metallic container decoration for Modern theme
+  BoxDecoration getMetallicContainerDecoration() {
+    return BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF000000), // Pure black at top-left
+          Color(0xFF1A1A1A), // Dark gray
+          Color(0xFF2A2A2A), // Lighter dark gray
+          Color(0xFF1A1A1A), // Back to dark gray for metallic effect
+        ],
+        stops: [0.0, 0.3, 0.7, 1.0],
+      ),
+      borderRadius: BorderRadius.circular(borderRadius),
+      // Removed border and box shadows for clean metallic look
     );
   }
 

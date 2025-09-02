@@ -57,6 +57,8 @@ class InfoSection extends StatelessWidget {
               padding: theme.containerPadding,
               decoration: theme.gaugeStyle == GaugeStyle.analog
                   ? BoxDecoration(color: theme.backgroundColor, borderRadius: BorderRadius.circular(theme.borderRadius))
+                  : theme.gaugeStyle == GaugeStyle.digital
+                  ? theme.getMetallicContainerDecoration()
                   : theme.getContainerDecoration(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,6 +75,8 @@ class InfoSection extends StatelessWidget {
                             size: theme.iconSize * 1.2,
                             icon: Icons.info,
                           )
+                        else if (theme.gaugeStyle == GaugeStyle.digital)
+                          Icon(Icons.info_outline_rounded, color: theme.primaryAccentColor, size: theme.iconSize)
                         else
                           Icon(Icons.info_outline, color: theme.primaryAccentColor, size: theme.iconSize),
                         SizedBox(width: theme.borderRadius * 0.5),

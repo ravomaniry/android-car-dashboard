@@ -20,24 +20,35 @@ class SpeedometerWidget extends StatefulWidget {
 
 class _SpeedometerWidgetState extends State<SpeedometerWidget> with TickerProviderStateMixin {
   bool _showDemoButton = false;
+  bool _showThemeButton = false;
   late AnimationController _fadeController;
+  late AnimationController _themeFadeController;
   late Animation<double> _fadeAnimation;
+  late Animation<double> _themeFadeAnimation;
   Timer? _hideTimer;
+  Timer? _themeHideTimer;
 
   @override
   void initState() {
     super.initState();
     _fadeController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
+    _themeFadeController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut));
+    _themeFadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _themeFadeController, curve: Curves.easeInOut));
   }
 
   @override
   void dispose() {
     _fadeController.dispose();
+    _themeFadeController.dispose();
     _hideTimer?.cancel();
+    _themeHideTimer?.cancel();
     super.dispose();
   }
 
@@ -65,6 +76,30 @@ class _SpeedometerWidgetState extends State<SpeedometerWidget> with TickerProvid
     });
   }
 
+  void _showThemeButtonTemporarily() {
+    setState(() {
+      _showThemeButton = true;
+    });
+
+    _themeFadeController.forward();
+
+    // Cancel existing timer
+    _themeHideTimer?.cancel();
+
+    // Set new timer to hide after 3 seconds
+    _themeHideTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) {
+        _themeFadeController.reverse().then((_) {
+          if (mounted) {
+            setState(() {
+              _showThemeButton = false;
+            });
+          }
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -76,22 +111,9 @@ class _SpeedometerWidgetState extends State<SpeedometerWidget> with TickerProvid
         final speedometerSize = size * 0.7;
 
         return GestureDetector(
-          onTap: _showDemoButtonTemporarily,
-          onPanUpdate: (details) {
-            // Handle swipe gestures for theme switching
-            if (details.delta.dx.abs() > details.delta.dy.abs()) {
-              // Horizontal swipe detected
-              if (details.delta.dx > 10) {
-                // Swipe right - cycle to next theme
-                context.read<DashboardState>().cycleTheme();
-              } else if (details.delta.dx < -10) {
-                // Swipe left - cycle to previous theme (reverse direction)
-                final dashboardState = context.read<DashboardState>();
-                // Cycle backwards by going forward twice
-                dashboardState.cycleTheme();
-                dashboardState.cycleTheme();
-              }
-            }
+          onTap: () {
+            _showDemoButtonTemporarily();
+            _showThemeButtonTemporarily();
           },
           child: Consumer<DashboardState>(
             builder: (context, dashboardState, child) {
@@ -172,27 +194,29 @@ class _SpeedometerWidgetState extends State<SpeedometerWidget> with TickerProvid
                       ],
                       // Speed display (only show for some themes)
                       if (theme.gaugeStyle == GaugeStyle.digital || theme.gaugeStyle == GaugeStyle.elegant)
-                        Container(
-                          width: speedometerSize * 0.6,
-                          height: speedometerSize * 0.6,
-                          decoration: BoxDecoration(
-                            color: theme.containerColor.withValues(alpha: 0.8),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: theme.borderColor, width: theme.borderWidth),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                widget.speed.toInt().toString(),
-                                style: GoogleFonts.orbitron(
-                                  color: _getSpeedCriticalityColor(theme),
-                                  fontSize: size * 0.18,
-                                  fontWeight: theme.headerFontWeight,
+                        Positioned(
+                          child: Container(
+                            width: speedometerSize * 0.6,
+                            height: speedometerSize * 0.6,
+                            decoration: BoxDecoration(
+                              color: theme.containerColor.withValues(alpha: 0.8),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: theme.borderColor, width: theme.borderWidth),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  widget.speed.toInt().toString(),
+                                  style: GoogleFonts.orbitron(
+                                    color: _getSpeedCriticalityColor(theme),
+                                    fontSize: size * 0.18,
+                                    fontWeight: theme.headerFontWeight,
+                                  ),
                                 ),
-                              ),
-                              Text('KM/H', style: theme.getBodyTextStyle(fontSize: size * 0.04)),
-                            ],
+                                Text('KM/H', style: theme.getBodyTextStyle(fontSize: size * 0.04)),
+                              ],
+                            ),
                           ),
                         ),
                       // RPM display for analog theme (speed is now shown in the gauge)
@@ -260,11 +284,41 @@ class _SpeedometerWidgetState extends State<SpeedometerWidget> with TickerProvid
                           ),
                         ),
                       ),
+                    // Theme cycle button - appears when tapped, positioned at bottom left
+                    if (_showThemeButton)
+                      Positioned(
+                        bottom: size * 0.05,
+                        left: size * 0.05,
+                        child: FadeTransition(
+                          opacity: _themeFadeAnimation,
+                          child: GestureDetector(
+                            onTap: () => dashboardState.cycleTheme(),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: size * 0.04, vertical: size * 0.02),
+                              decoration: BoxDecoration(
+                                color: theme.primaryAccentColor,
+                                borderRadius: BorderRadius.circular(theme.borderRadius + 4),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.3),
+                                    blurRadius: theme.shadowBlurRadius,
+                                    offset: theme.shadowOffset,
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                'THEME',
+                                style: theme.getHeaderTextStyle(fontSize: size * 0.035, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     // Stop button - always visible during demo
                     if (dashboardState.demoMode)
                       Positioned(
                         bottom: size * 0.05,
-                        left: size * 0.05,
+                        left: size * 0.15,
                         child: GestureDetector(
                           onTap: () => dashboardState.toggleDemoMode(),
                           child: Container(
@@ -299,6 +353,18 @@ class _SpeedometerWidgetState extends State<SpeedometerWidget> with TickerProvid
 
   /// Get speed criticality color based on speed value
   Color _getSpeedCriticalityColor(DashboardTheme theme) {
+    // For Modern theme, use theme colors instead of criticality colors
+    if (theme.gaugeStyle == GaugeStyle.digital) {
+      if (widget.speed <= 40) {
+        return theme.successColor; // Low speed - green
+      } else if (widget.speed <= 80) {
+        return theme.primaryAccentColor; // Normal speed - cyan
+      } else {
+        return theme.secondaryAccentColor; // High speed - light cyan
+      }
+    }
+
+    // For other themes, use criticality colors
     if (widget.speed <= 40) {
       return theme.successColor; // Low speed - green
     } else if (widget.speed <= 70) {

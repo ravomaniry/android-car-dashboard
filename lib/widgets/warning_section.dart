@@ -130,6 +130,8 @@ class _WarningSectionState extends State<WarningSection> {
               padding: theme.containerPadding,
               decoration: theme.gaugeStyle == GaugeStyle.analog
                   ? BoxDecoration(color: theme.backgroundColor, borderRadius: BorderRadius.circular(theme.borderRadius))
+                  : theme.gaugeStyle == GaugeStyle.digital
+                  ? theme.getMetallicContainerDecoration()
                   : theme.getContainerDecoration(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,6 +148,8 @@ class _WarningSectionState extends State<WarningSection> {
                             size: theme.iconSize * 1.2,
                             icon: Icons.warning,
                           )
+                        else if (theme.gaugeStyle == GaugeStyle.digital)
+                          Icon(Icons.warning_amber_rounded, color: theme.primaryAccentColor, size: theme.iconSize)
                         else
                           Icon(Icons.terminal, color: theme.primaryAccentColor, size: theme.iconSize),
                         SizedBox(width: theme.borderRadius * 0.5),

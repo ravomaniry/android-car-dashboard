@@ -8,6 +8,7 @@ class DynamicGaugePainter extends CustomPainter {
   final double maxValue;
   final DashboardTheme theme;
   final String label;
+  final String unit;
 
   const DynamicGaugePainter({
     required this.value,
@@ -15,6 +16,7 @@ class DynamicGaugePainter extends CustomPainter {
     required this.maxValue,
     required this.theme,
     required this.label,
+    required this.unit,
   });
 
   @override
@@ -146,15 +148,8 @@ class DynamicGaugePainter extends CustomPainter {
     final normalizedValue = ((value - minValue) / (maxValue - minValue)).clamp(0.0, 1.0);
     final activeAngle = normalizedValue * math.pi * 1.5;
 
-    if (theme.useGradients) {
-      paint.shader = SweepGradient(
-        startAngle: -math.pi * 0.75,
-        endAngle: -math.pi * 0.75 + activeAngle,
-        colors: [theme.primaryAccentColor, theme.secondaryAccentColor],
-      ).createShader(Rect.fromCircle(center: center, radius: radius));
-    } else {
-      paint.color = _getValueColor(value);
-    }
+    // Disable gradients for Modern theme to avoid crashes
+    paint.color = _getValueColor(value);
 
     paint.strokeWidth = 12;
     canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -math.pi * 0.75, activeAngle, false, paint);
@@ -240,6 +235,15 @@ class DynamicGaugePainter extends CustomPainter {
 
   Color _getValueColor(double val) {
     final normalized = ((val - minValue) / (maxValue - minValue)).clamp(0.0, 1.0);
+
+    // For Modern theme, use theme colors instead of criticality colors
+    if (theme.gaugeStyle == GaugeStyle.digital) {
+      if (normalized <= 0.3) return theme.successColor;
+      if (normalized <= 0.7) return theme.primaryAccentColor;
+      return theme.secondaryAccentColor;
+    }
+
+    // For other themes, use criticality colors
     if (normalized <= 0.3) return theme.successColor;
     if (normalized <= 0.7) return theme.warningColor;
     return theme.dangerColor;

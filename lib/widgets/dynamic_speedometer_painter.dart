@@ -185,7 +185,7 @@ class DynamicSpeedometerPainter extends CustomPainter {
       paint.shader = SweepGradient(
         startAngle: -math.pi * 1.25,
         endAngle: -math.pi * 1.25 + activeAngle,
-        colors: [theme.successColor, theme.speedometerColor, theme.dangerColor],
+        colors: [theme.successColor, theme.speedometerColor, theme.secondaryAccentColor],
         stops: [0.0, 0.7, 1.0],
       ).createShader(Rect.fromCircle(center: center, radius: radius));
     } else {
@@ -383,6 +383,14 @@ class DynamicSpeedometerPainter extends CustomPainter {
   }
 
   Color _getSpeedColor(double spd) {
+    // For Modern theme, use theme colors instead of criticality colors
+    if (theme.gaugeStyle == GaugeStyle.digital) {
+      if (spd < 40) return theme.successColor;
+      if (spd < 80) return theme.primaryAccentColor;
+      return theme.secondaryAccentColor;
+    }
+
+    // For other themes, use criticality colors
     if (spd < 60) return theme.successColor;
     if (spd < 120) return theme.warningColor;
     return theme.dangerColor;

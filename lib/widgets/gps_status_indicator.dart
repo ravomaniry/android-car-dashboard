@@ -57,11 +57,13 @@ class GpsStatusIndicator extends StatelessWidget {
       child: Container(
         height: 60,
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F0F0F),
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: isWarning ? Colors.red : const Color(0xFF333333), width: 1),
-        ),
+        decoration: theme.gaugeStyle == GaugeStyle.digital
+            ? null // Transparent background for Modern theme
+            : BoxDecoration(
+                color: const Color(0xFF0F0F0F),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: isWarning ? Colors.red : const Color(0xFF333333), width: 1),
+              ),
         child: Center(
           child: AnimatedBuilder(
             animation: blinkAnimation,
@@ -104,11 +106,13 @@ class GpsStatusIndicator extends StatelessWidget {
       child: Container(
         height: 60,
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F0F0F),
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: isWarning ? Colors.red : const Color(0xFF333333), width: 1),
-        ),
+        decoration: theme.gaugeStyle == GaugeStyle.digital
+            ? null // Transparent background for Modern theme
+            : BoxDecoration(
+                color: const Color(0xFF0F0F0F),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: isWarning ? Colors.red : const Color(0xFF333333), width: 1),
+              ),
         child: Row(
           children: [
             AnimatedBuilder(

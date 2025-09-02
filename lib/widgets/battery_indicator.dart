@@ -51,12 +51,14 @@ class BatteryIndicator extends StatelessWidget {
     return Container(
       height: 60,
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        border: Border.all(color: isLowVoltage ? Colors.red : const Color(0xFF333333), width: 1),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [BoxShadow(color: voltageColor.withValues(alpha: 0.1), blurRadius: 8)],
-      ),
+      decoration: theme.gaugeStyle == GaugeStyle.digital
+          ? null // Transparent background for Modern theme
+          : BoxDecoration(
+              color: const Color(0xFF1A1A1A),
+              border: Border.all(color: isLowVoltage ? Colors.red : const Color(0xFF333333), width: 1),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [BoxShadow(color: voltageColor.withValues(alpha: 0.1), blurRadius: 8)],
+            ),
       child: Center(
         child: AnimatedBuilder(
           animation: blinkAnimation,
@@ -93,12 +95,14 @@ class BatteryIndicator extends StatelessWidget {
     return Container(
       height: 60,
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        border: Border.all(color: isLowVoltage ? Colors.red : const Color(0xFF333333), width: 1),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [BoxShadow(color: voltageColor.withValues(alpha: 0.1), blurRadius: 8)],
-      ),
+      decoration: theme.gaugeStyle == GaugeStyle.digital
+          ? null // Transparent background for Modern theme
+          : BoxDecoration(
+              color: const Color(0xFF1A1A1A),
+              border: Border.all(color: isLowVoltage ? Colors.red : const Color(0xFF333333), width: 1),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [BoxShadow(color: voltageColor.withValues(alpha: 0.1), blurRadius: 8)],
+            ),
       child: Row(
         children: [
           AnimatedBuilder(

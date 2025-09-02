@@ -84,43 +84,67 @@ class CoolantGauge extends StatelessWidget with MultiThemedWidget {
 
   @override
   Widget buildModern(BuildContext context, DashboardTheme theme) {
-    return Container(
-      padding: EdgeInsets.all(theme.containerPadding.top * 0.5),
-      decoration: theme.getContainerDecoration(),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final gaugeSize = math.min(constraints.maxWidth, constraints.maxHeight) * 0.9;
-          return Center(
-            child: SizedBox(
-              width: gaugeSize,
-              height: gaugeSize,
-              child: AnalogNeedleGauge(
-                value: temperature,
-                minValue: minTemp,
-                maxValue: maxTemp,
-                label: 'TEMP',
-                unit: '°C',
-                needleColor: theme.primaryAccentColor,
-                backgroundColor: theme.backgroundColor,
-                tickColor: theme.textSecondaryColor,
-                textColor: theme.textPrimaryColor,
-                tickLabels: ['C', '70', '80', '90', 'H'],
-                criticalityColorFunction: (value) {
-                  if (value >= 100) {
-                    return theme.dangerColor; // Overheating - red
-                  } else if (value >= 90) {
-                    return theme.warningColor; // Hot - orange
-                  } else if (value >= 80) {
-                    return theme.primaryAccentColor; // Normal high - blue
-                  } else {
-                    return theme.successColor; // Normal - green
-                  }
-                },
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final dashboardState = context.read<DashboardState>();
+        final isSmallScreen = dashboardState.isSmallScreen;
+
+        // Check if this section needs small screen mode
+        final needsSmallScreen = _checkIfNeedsSmallScreen(constraints);
+
+        // Notify state manager
+        if (needsSmallScreen && !isSmallScreen) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            dashboardState.requestSmallScreenMode('CoolantGauge');
+          });
+        } else if (!needsSmallScreen && isSmallScreen) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            dashboardState.requestBigScreenMode('CoolantGauge');
+          });
+        }
+
+        return Container(
+          padding: EdgeInsets.all(theme.containerPadding.top * 0.5),
+          decoration: theme.getMetallicContainerDecoration(),
+          child: Stack(
+            children: [
+              if (isSmallScreen)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Text('TEMP', style: theme.getHeaderTextStyle(fontSize: 10), textAlign: TextAlign.center),
+                ),
+              // Gauge
+              Center(
+                child: CustomPaint(
+                  size: Size(constraints.maxWidth * 0.8, constraints.maxHeight * 0.8),
+                  painter: DynamicGaugePainter(
+                    value: temperature,
+                    minValue: minTemp,
+                    maxValue: maxTemp,
+                    label: 'TEMP',
+                    unit: '°C',
+                    theme: theme,
+                  ),
+                ),
               ),
-            ),
-          );
-        },
-      ),
+              // Value display
+              if (!isSmallScreen)
+                Positioned(
+                  bottom: 10,
+                  left: 0,
+                  right: 0,
+                  child: Text(
+                    '${temperature.toInt()}°C',
+                    style: theme.getHeaderTextStyle(fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -226,6 +250,7 @@ class CoolantGauge extends StatelessWidget with MultiThemedWidget {
                                     maxValue: maxTemp,
                                     theme: theme,
                                     label: 'TEMP',
+                                    unit: '°C',
                                   ),
                                 ),
                                 Column(
