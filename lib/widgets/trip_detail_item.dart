@@ -1,66 +1,83 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../services/dashboard_state.dart';
+import '../themes/dashboard_theme.dart';
+
+import 'themed/analog_light_indicator.dart';
 
 class TripDetailItem extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
 
-  const TripDetailItem({
-    super.key,
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
+  const TripDetailItem({super.key, required this.label, required this.value, required this.icon});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 100,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        border: Border.all(
-          color: const Color(0xFF00D9FF), // Cyan for trip details
-          width: 1,
-        ),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF00D9FF).withOpacity(0.1),
-            blurRadius: 8,
+    return Consumer<DashboardState>(
+      builder: (context, dashboardState, child) {
+        final theme = dashboardState.currentTheme;
+
+        return Container(
+          height: 100,
+          padding: EdgeInsets.all(theme.containerPadding.top * 0.5), // Scale padding to fit
+          decoration: theme.gaugeStyle == GaugeStyle.analog 
+            ? BoxDecoration(
+                color: theme.backgroundColor,
+                borderRadius: BorderRadius.circular(theme.borderRadius),
+              )
+            : theme.getContainerDecoration().copyWith(
+                border: Border.all(color: theme.secondaryAccentColor, width: theme.borderWidth),
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.secondaryAccentColor.withValues(alpha: 0.1),
+                    blurRadius: theme.shadowBlurRadius,
+                    offset: theme.shadowOffset,
+                  ),
+                ],
+              ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min, // Fix overflow
+            children: [
+              if (theme.gaugeStyle == GaugeStyle.analog)
+                AnalogLightIndicator(
+                  isActive: true,
+                  activeColor: theme.secondaryAccentColor,
+                  inactiveColor: theme.inactiveColor,
+                  size: theme.iconSize * 1.5,
+                  icon: icon,
+                )
+              else
+                Icon(icon, color: theme.secondaryAccentColor, size: theme.iconSize),
+              SizedBox(height: theme.borderRadius * 0.25), // Responsive spacing
+              Flexible(
+                // Allow text to shrink if needed
+                child: Text(
+                  label,
+                  style: theme.getBodyTextStyle(fontSize: 8, color: theme.textSecondaryColor),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              SizedBox(height: theme.borderRadius * 0.2),
+              Flexible(
+                // Allow text to shrink if needed
+                child: Text(
+                  value,
+                  style: theme
+                      .getBodyTextStyle(fontSize: 10, color: theme.secondaryAccentColor)
+                      .copyWith(fontWeight: theme.headerFontWeight),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: const Color(0xFF00D9FF), // Cyan for icons
-            size: 18,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: GoogleFonts.firaCode(
-              color: const Color(0xFF888888),
-              fontSize: 8,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: GoogleFonts.firaCode(
-              color: const Color(0xFF00D9FF), // Cyan for values
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import '../services/dashboard_state.dart';
 import '../services/event_manager.dart';
+import '../themes/dashboard_theme.dart';
 import 'oil_warning_indicator.dart';
 import 'battery_indicator.dart';
 import 'bluetooth_status_indicator.dart';
 import 'gps_status_indicator.dart';
+
+import 'themed/analog_light_indicator.dart';
 
 class WarningSection extends StatefulWidget {
   final bool oilWarning;
@@ -122,20 +124,11 @@ class _WarningSectionState extends State<WarningSection> {
               });
             }
 
+            final theme = dashboardState.currentTheme;
+
             return Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A1A1A),
-                border: Border.all(color: const Color(0xFF00FF41), width: 1),
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF00FF41).withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
+              padding: theme.containerPadding,
+              decoration: theme.getContainerDecoration(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -143,16 +136,18 @@ class _WarningSectionState extends State<WarningSection> {
                   if (!isSmallScreen) ...[
                     Row(
                       children: [
-                        Icon(Icons.terminal, color: const Color(0xFF00FF41), size: 16),
-                        const SizedBox(width: 8),
-                        Text(
-                          'SYSTEM STATUS',
-                          style: GoogleFonts.firaCode(
-                            color: const Color(0xFF00FF41),
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        if (theme.gaugeStyle == GaugeStyle.analog)
+                          AnalogLightIndicator(
+                            isActive: true,
+                            activeColor: theme.primaryAccentColor,
+                            inactiveColor: theme.inactiveColor,
+                            size: theme.iconSize * 1.2,
+                            icon: Icons.settings,
+                          )
+                        else
+                          Icon(Icons.terminal, color: theme.primaryAccentColor, size: theme.iconSize),
+                        SizedBox(width: theme.borderRadius * 0.5),
+                        Text('SYSTEM STATUS', style: theme.getHeaderTextStyle(fontSize: 12)),
                       ],
                     ),
                     const SizedBox(height: 16),

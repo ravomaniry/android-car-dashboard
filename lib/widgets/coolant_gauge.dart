@@ -3,8 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../services/dashboard_state.dart';
+import '../themes/dashboard_theme.dart';
+import 'dynamic_gauge_painter.dart';
+import 'themed/themed_widget_interface.dart';
+import 'themed/analog_needle_gauge.dart';
 
-class CoolantGauge extends StatelessWidget {
+class CoolantGauge extends StatelessWidget with MultiThemedWidget {
   final double temperature;
   static const double minTemp = 60.0;
   static const double maxTemp = 120.0;
@@ -14,6 +18,15 @@ class CoolantGauge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Consumer<DashboardState>(
+      builder: (context, dashboardState, child) {
+        final theme = dashboardState.currentTheme;
+        return buildForTheme(context, theme);
+      },
+    );
+  }
+
+  Widget _buildOriginalLayout(BuildContext context) {
     return Consumer<DashboardState>(
       builder: (context, dashboardState, child) {
         return LayoutBuilder(
@@ -35,16 +48,11 @@ class CoolantGauge extends StatelessWidget {
               });
             }
 
+            final theme = dashboardState.currentTheme;
+
             return Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A1A1A),
-                border: Border.all(color: const Color(0xFF00FF41), width: 1),
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(color: const Color(0xFF00FF41).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2)),
-                ],
-              ),
+              padding: EdgeInsets.all(theme.containerPadding.top * 0.5),
+              decoration: theme.getContainerDecoration(),
               child: Stack(
                 children: [
                   // Floating icon for small screens
@@ -52,7 +60,7 @@ class CoolantGauge extends StatelessWidget {
                     Positioned(
                       top: 4,
                       left: 4,
-                      child: Icon(Icons.thermostat, color: const Color(0xFF00FF41), size: 16),
+                      child: Icon(Icons.thermostat, color: theme.primaryAccentColor, size: theme.iconSize),
                     ),
 
                   Column(
@@ -62,16 +70,9 @@ class CoolantGauge extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.thermostat, color: const Color(0xFF00FF41), size: 16),
-                            const SizedBox(width: 8),
-                            Text(
-                              'COOLANT',
-                              style: GoogleFonts.firaCode(
-                                color: const Color(0xFF00FF41),
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            Icon(Icons.thermostat, color: theme.primaryAccentColor, size: theme.iconSize),
+                            SizedBox(width: theme.borderRadius * 0.5),
+                            Text('COOLANT', style: theme.getHeaderTextStyle(fontSize: 12)),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -89,10 +90,16 @@ class CoolantGauge extends StatelessWidget {
                                 child: Stack(
                                   alignment: Alignment.center,
                                   children: [
-                                    // Background gauge
+                                    // Dynamic gauge based on theme
                                     CustomPaint(
                                       size: Size(gaugeSize, gaugeSize),
-                                      painter: CoolantGaugePainter(temperature: temperature),
+                                      painter: DynamicGaugePainter(
+                                        value: temperature,
+                                        minValue: minTemp,
+                                        maxValue: maxTemp,
+                                        theme: theme,
+                                        label: 'TEMP',
+                                      ),
                                     ),
 
                                     // Temperature display
@@ -102,19 +109,13 @@ class CoolantGauge extends StatelessWidget {
                                         Text(
                                           '${temperature.toInt()}°',
                                           style: GoogleFonts.orbitron(
-                                            color: _getTemperatureColor(temperature),
+                                            color: theme.getTemperatureColor(temperature),
                                             fontSize: gaugeSize * 0.2,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         if (!isSmallScreen)
-                                          Text(
-                                            'CELSIUS',
-                                            style: GoogleFonts.firaCode(
-                                              color: const Color(0xFF888888),
-                                              fontSize: gaugeSize * 0.07,
-                                            ),
-                                          ),
+                                          Text('CELSIUS', style: theme.getBodyTextStyle(fontSize: gaugeSize * 0.07)),
                                       ],
                                     ),
                                   ],
@@ -144,17 +145,154 @@ class CoolantGauge extends StatelessWidget {
     return availableWidth < 850 || availableHeight < 400;
   }
 
-  Color _getTemperatureColor(double temp) {
-    if (temp < 70) return Colors.blue;
-    if (temp > 100) return Colors.red;
-    return const Color(0xFF00FF41);
+  @override
+  Widget buildLinux(BuildContext context, DashboardTheme theme) {
+    return _buildDefaultGauge(context, theme);
+  }
+
+  @override
+  Widget buildClassic(BuildContext context, DashboardTheme theme) {
+    return Container(
+      padding: EdgeInsets.all(theme.containerPadding.top * 0.5),
+      decoration: BoxDecoration(
+        color: theme.backgroundColor,
+        borderRadius: BorderRadius.circular(theme.borderRadius),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final gaugeSize = math.min(constraints.maxWidth, constraints.maxHeight) * 0.9;
+          return Center(
+            child: SizedBox(
+              width: gaugeSize,
+              height: gaugeSize,
+              child: AnalogNeedleGauge(
+                value: temperature,
+                minValue: minTemp,
+                maxValue: maxTemp,
+                label: 'TEMP',
+                unit: '°C',
+                needleColor: theme.primaryAccentColor,
+                backgroundColor: theme.backgroundColor,
+                tickColor: theme.textSecondaryColor,
+                textColor: theme.textPrimaryColor,
+                tickLabels: ['C', '70', '80', '90', 'H'],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget buildModern(BuildContext context, DashboardTheme theme) {
+    return _buildDefaultGauge(context, theme);
+  }
+
+  @override
+  Widget buildWoman(BuildContext context, DashboardTheme theme) {
+    return _buildDefaultGauge(context, theme);
+  }
+
+  Widget _buildDefaultGauge(BuildContext context, DashboardTheme theme) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final dashboardState = context.read<DashboardState>();
+        final isSmallScreen = dashboardState.isSmallScreen;
+
+        // Check if this section needs small screen mode
+        final needsSmallScreen = _checkIfNeedsSmallScreen(constraints);
+
+        // Notify state manager
+        if (needsSmallScreen && !isSmallScreen) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            dashboardState.requestSmallScreenMode('CoolantGauge');
+          });
+        } else if (!needsSmallScreen && isSmallScreen) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            dashboardState.requestBigScreenMode('CoolantGauge');
+          });
+        }
+
+        return Container(
+          padding: EdgeInsets.all(theme.containerPadding.top * 0.5),
+          decoration: theme.getContainerDecoration(),
+          child: Stack(
+            children: [
+              if (isSmallScreen)
+                Positioned(
+                  child: Icon(Icons.thermostat, color: theme.primaryAccentColor, size: theme.iconSize),
+                ),
+              Column(
+                children: [
+                  if (!isSmallScreen) ...[
+                    Row(
+                      children: [
+                        Icon(Icons.thermostat, color: theme.primaryAccentColor, size: theme.iconSize),
+                        SizedBox(width: theme.borderRadius * 0.5),
+                        Text('COOLANT TEMP', style: theme.getHeaderTextStyle(fontSize: 12)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, gaugeConstraints) {
+                        final gaugeSize = math.min(gaugeConstraints.maxWidth, gaugeConstraints.maxHeight) * 0.8;
+                        return Center(
+                          child: SizedBox(
+                            width: gaugeSize,
+                            height: gaugeSize,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                CustomPaint(
+                                  size: Size(gaugeSize, gaugeSize),
+                                  painter: DynamicGaugePainter(
+                                    value: temperature,
+                                    minValue: minTemp,
+                                    maxValue: maxTemp,
+                                    theme: theme,
+                                    label: 'TEMP',
+                                  ),
+                                ),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      '${temperature.toInt()}°C',
+                                      style: GoogleFonts.orbitron(
+                                        color: theme.getTemperatureColor(temperature),
+                                        fontSize: gaugeSize * 0.18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    if (!isSmallScreen)
+                                      Text('TEMP', style: theme.getBodyTextStyle(fontSize: gaugeSize * 0.07)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
 class CoolantGaugePainter extends CustomPainter {
   final double temperature;
+  final DashboardTheme theme;
 
-  const CoolantGaugePainter({required this.temperature});
+  const CoolantGaugePainter({required this.temperature, required this.theme});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -168,7 +306,7 @@ class CoolantGaugePainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     // Draw background circle
-    paint.color = const Color(0xFF333333);
+    paint.color = theme.inactiveColor;
     paint.strokeWidth = 2;
     canvas.drawCircle(center, radius, paint);
 
@@ -180,7 +318,7 @@ class CoolantGaugePainter extends CustomPainter {
     final currentTickIndex = (normalizedTemp * numTicks).round();
 
     // Get uniform color for all ticks based on current temperature criticality
-    final currentTempColor = _getTickColor(temperature);
+    final currentTempColor = theme.getTemperatureColor(temperature);
 
     // Draw htop-style ticks
     for (int i = 0; i <= numTicks; i++) {
@@ -193,7 +331,7 @@ class CoolantGaugePainter extends CustomPainter {
         tickColor = currentTempColor;
       } else {
         // Inactive ticks - dark gray
-        tickColor = const Color(0xFF444444);
+        tickColor = theme.inactiveColor;
       }
 
       paint.color = tickColor;
@@ -211,16 +349,8 @@ class CoolantGaugePainter extends CustomPainter {
     // Removed gray tick marks for cleaner appearance
   }
 
-  Color _getTickColor(double temp) {
-    if (temp < 70) return const Color(0xFF00D9FF); // Cyan for cold
-    if (temp <= 85) return const Color(0xFF00FF41); // Green for normal
-    if (temp <= 95) return const Color(0xFFFFEB3B); // Yellow for warm
-    if (temp <= 105) return const Color(0xFFFF9800); // Orange for hot
-    return const Color(0xFFFF5722); // Red for overheating
-  }
-
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return oldDelegate is CoolantGaugePainter && oldDelegate.temperature != temperature;
+    return oldDelegate is CoolantGaugePainter && (oldDelegate.temperature != temperature || oldDelegate.theme != theme);
   }
 }

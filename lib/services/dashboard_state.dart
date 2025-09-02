@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import '../models/dashboard_data.dart';
+import '../themes/dashboard_theme.dart';
 
 class DashboardState extends ChangeNotifier {
   DashboardData _data = const DashboardData();
@@ -10,6 +11,10 @@ class DashboardState extends ChangeNotifier {
   bool _bluetoothConnected = false;
   String _connectionStatus = 'Disconnected';
   bool _isSmallScreen = false;
+
+  // Theme management
+  DashboardThemeType _currentThemeType = DashboardThemeType.linux;
+  DashboardTheme _currentTheme = DashboardTheme.linux;
 
   // Fuel usage calculation variables
   double? _previousFuelLevel;
@@ -31,6 +36,8 @@ class DashboardState extends ChangeNotifier {
   bool get bluetoothConnected => _bluetoothConnected;
   String get connectionStatus => _connectionStatus;
   bool get isSmallScreen => _isSmallScreen;
+  DashboardThemeType get currentThemeType => _currentThemeType;
+  DashboardTheme get currentTheme => _currentTheme;
 
   // Update ESP32 sensor data (called by BluetoothService)
   void updateEsp32SensorData(Esp32SensorData newSensorData) {
@@ -201,6 +208,32 @@ class DashboardState extends ChangeNotifier {
 
   // Debug method to see which sections are requesting small screen mode
   Set<String> get sectionsRequestingSmallScreen => _sectionsRequestingSmallScreen;
+
+  // Theme management methods
+  void cycleTheme() {
+    switch (_currentThemeType) {
+      case DashboardThemeType.linux:
+        _currentThemeType = DashboardThemeType.classic;
+        break;
+      case DashboardThemeType.classic:
+        _currentThemeType = DashboardThemeType.modern;
+        break;
+      case DashboardThemeType.modern:
+        _currentThemeType = DashboardThemeType.woman;
+        break;
+      case DashboardThemeType.woman:
+        _currentThemeType = DashboardThemeType.linux;
+        break;
+    }
+    _currentTheme = DashboardTheme.getTheme(_currentThemeType);
+    notifyListeners();
+  }
+
+  void setTheme(DashboardThemeType themeType) {
+    _currentThemeType = themeType;
+    _currentTheme = DashboardTheme.getTheme(themeType);
+    notifyListeners();
+  }
 
   // Demo mode management
   void toggleDemoMode() {

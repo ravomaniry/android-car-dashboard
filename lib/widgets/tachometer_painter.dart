@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import '../themes/dashboard_theme.dart';
 
 class TachometerPainter extends CustomPainter {
   final double rpm;
+  final DashboardTheme theme;
   static const double maxRpm = 8000;
 
-  const TachometerPainter({required this.rpm});
+  const TachometerPainter({required this.rpm, required this.theme});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -17,7 +19,7 @@ class TachometerPainter extends CustomPainter {
       ..strokeWidth = 4;
 
     // Background arc
-    paint.color = const Color(0xFF333333);
+    paint.color = theme.inactiveColor;
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       -math.pi * 0.75, // Start angle
@@ -27,14 +29,14 @@ class TachometerPainter extends CustomPainter {
     );
 
     // RPM arc
-    paint.color = _getRpmColor(rpm);
+    paint.color = theme.getRpmColor(rpm);
     paint.strokeWidth = 6;
     final rpmAngle = (rpm / maxRpm) * math.pi * 1.5;
     canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -math.pi * 0.75, rpmAngle, false, paint);
 
     // Tick marks
     paint.strokeWidth = 3;
-    paint.color = const Color(0xFF444444); // Dark gray for tachometer marks
+    paint.color = theme.inactiveColor;
 
     for (int i = 0; i <= 8; i++) {
       final angle = -math.pi * 0.75 + (i / 8) * math.pi * 1.5;
@@ -48,14 +50,7 @@ class TachometerPainter extends CustomPainter {
         final labelPosition = center + Offset(math.cos(angle) * (radius - 30), math.sin(angle) * (radius - 30));
 
         final textPainter = TextPainter(
-          text: TextSpan(
-            text: '${i}K',
-            style: TextStyle(
-              color: const Color(0xFF666666), // Medium gray for labels
-              fontSize: 12,
-              fontFamily: 'FiraCode',
-            ),
-          ),
+          text: TextSpan(text: '${i}K', style: theme.getBodyTextStyle(fontSize: 12)),
           textDirection: TextDirection.ltr,
         );
         textPainter.layout();
@@ -64,15 +59,8 @@ class TachometerPainter extends CustomPainter {
     }
   }
 
-  Color _getRpmColor(double rpm) {
-    if (rpm < 3000) return const Color(0xFF00D9FF); // Cyan for normal RPM
-    if (rpm < 5000) return Colors.yellow;
-    if (rpm < 6500) return Colors.orange;
-    return Colors.red;
-  }
-
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return oldDelegate is TachometerPainter && oldDelegate.rpm != rpm;
+    return oldDelegate is TachometerPainter && (oldDelegate.rpm != rpm || oldDelegate.theme != theme);
   }
 }

@@ -38,14 +38,15 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A), // Deep black background
-      body: SafeArea(
-        child: Consumer<DashboardState>(
-          builder: (context, dashboardState, child) {
-            final data = dashboardState.data;
+    return Consumer<DashboardState>(
+      builder: (context, dashboardState, child) {
+        final data = dashboardState.data;
+        final theme = dashboardState.currentTheme;
 
-            return Padding(
+        return Scaffold(
+          backgroundColor: theme.backgroundColor,
+          body: SafeArea(
+            child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
@@ -150,10 +151,10 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                   ),
                 ],
               ),
-            );
-          },
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
